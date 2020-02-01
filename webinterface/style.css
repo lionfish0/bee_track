@@ -1,0 +1,34 @@
+#image {
+    position:absolute;
+    left:350px;
+    top:90px;
+    width:300px;
+    height:225px;
+    background-size: 300px 225px;
+    background-image:url("nodata.png");
+}
+#config {
+    position:absolute;
+    left:30px;
+    top:90px;
+    width:300px;
+    height:300px;
+}
+#image_centre {
+    position:absolute;
+    left:350px;
+    top:350px;
+    width:200px;
+    height:200px;
+    background-image:url("nodata.png");
+}
+#title_centre {
+    position:absolute;
+    left:350px;
+    top:330px;
+}
+#trackingresults {
+    position:absolute;
+    left:350px;
+    top:550px; 
+}
