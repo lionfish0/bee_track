@@ -40,15 +40,6 @@ class Aravis_Camera(Camera):
 #        self.camera_config_queue = Queue()
 #        self.setup_camera()
     
-    def config_camera(self,command):
-        """To implement"""
-        pass
-        
-    def camera_config_worker(self):
-        """this method is a worker that waits for the config queue"""
-        while True:
-            command = self.camera_config_queue.get()
-            self.config_camera(command)
 
     def get_photo(self):
         print(self.stream.get_n_buffers())
@@ -62,7 +53,7 @@ class Aravis_Camera(Camera):
             gc.collect()            
             return None
         status = buffer.get_status()
-        if self.status!=0:
+        if status!=0:
             self.stream.push_buffer(buffer) #return it to the buffer
             gc.collect()
             return None

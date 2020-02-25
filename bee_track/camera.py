@@ -1,41 +1,44 @@
 import numpy as np
-from multiprocessing import Queue
+from QueueBuffer import QueueBuffer
+from configurable import Configurable
+from multiprocessing import Value
 import threading
 
-class Camera():
+class Camera(Configurable):
     def setup_camera(self):
         """To implement for specific cameras"""
         pass
         
-    def __init__(self):
-        self.photo_queue = Queue()
-        self.camera_config_queue = Queue()
-        self.setup_camera()
-    
-    def config_camera(self,command):
-        """To implement"""
-        pass
-        
-    def camera_config_worker(self):
-        """this method is a worker that waits for the config queue"""
-        while True:
-            command = self.camera_config_queue.get()
-            self.config_camera(command)
-
+    def __init__(self,message_queue,record):
+        """
+        Pass record list from trigger
+        """
+        super().__init__(message_queue)
+        self.photo_queue = QueueBuffer()
+        self.record = record  
+        self.index = Value('i',0)
     def get_photo(self):
         """Blocking, returns a photo numpy array"""
         pass
         
     def worker(self):
-        t = threading.Thread(target=self.camera_config_worker)
-        t.start()
-        self.index = 0
+        self.setup_camera()
+        
         while True:
             photo = self.get_photo()
-            self.index+=1
+            
             if photo is None:
                 print("Photo failed")
-            self.photo_queue.put([self.index,photo])
+            print("Waiting for index to appear in record...")
+            rec = None
+            for r in self.record:
+                if r['index'] == self.index.value:
+                    rec = r
+                    break
+            print("found")
+            self.photo_queue.put([self.index.value,photo,rec])
+            self.index.value = self.index.value + 1
+            
                 
     def close(self):
         """
