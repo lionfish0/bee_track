@@ -1,7 +1,7 @@
 import numpy as np
 from QueueBuffer import QueueBuffer
 from configurable import Configurable
-from multiprocessing import Value
+from multiprocessing import Value, Queue
 import threading
 
 class Camera(Configurable):
@@ -14,7 +14,7 @@ class Camera(Configurable):
         Pass record list from trigger
         """
         super().__init__(message_queue)
-        self.photo_queue = QueueBuffer()
+        self.photo_queue = QueueBuffer(20) 
         self.record = record  
         self.index = Value('i',0)
     def get_photo(self):
@@ -22,11 +22,13 @@ class Camera(Configurable):
         pass
         
     def worker(self):
+        print("Camera worker started")
         self.setup_camera()
-        
+        print("Camera setup complete")
         while True:
+            print("waiting for photo")
             photo = self.get_photo()
-            
+            print("...")
             if photo is None:
                 print("Photo failed")
             print("Waiting for index to appear in record...")

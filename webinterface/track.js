@@ -160,8 +160,8 @@ function drawcrosshair(imdata,track,imscale,width,height) {
 }
 
 function convertJSONtoImageURL(data,drawcrosshairs) {
-    img = data['image']
-    tracking = data['tracking']
+    img = data['photo']
+    record = data['record']
     height = img.length
     width = img[0].length
 
@@ -195,12 +195,12 @@ function convertJSONtoImageURL(data,drawcrosshairs) {
         }
     }
     
-    console.log(tracking.length)
+    /*console.log(tracking.length)
     if (drawcrosshairs) {
         for (var i=0;i<tracking.length;i+=1){
             drawcrosshair(imdata,tracking[i],10,width,height)
         }
-    }
+    }*/
 
     // put the modified pixels back on the canvas
     ctx.putImageData(imgData,0,0);
@@ -217,9 +217,9 @@ function refreshimages(){
     msg('Downloading...');
     
     
-    url = "http://"+$('input#url').val()+"/getrawtrackingimage/"+image+"/0/1";
-    $.getJSON(url, function(data) {$('#flash_image').css("background-image",convertJSONtoImageURL(data,1)); });
-    url = "http://"+$('input#url').val()+"/getrawtrackingimage/"+image+"/1/1";
+    url = "http://"+$('input#url').val()+"/getrawtrackingimage/"+image;
+    $.getJSON(url, function(data) {$('#image').css("background-image",convertJSONtoImageURL(data)); });
+    /*url = "http://"+$('input#url').val()+"/getrawtrackingimage/"+image;
     $.getJSON(url, function(data) {$('#noflash_image').css("background-image",convertJSONtoImageURL(data,1)); });
     url = "http://"+$('input#url').val()+"/getrawtrackingimage/"+image+"/0/0";
     $.getJSON(url, function(data) {$('#flash_image_centre').css("background-image",convertJSONtoImageURL(data)); });
@@ -233,7 +233,7 @@ function refreshimages(){
         $('span#trackingresults').text(data);
       },
       error: function(jqXHR, status, errorThrown){msg('Download tracking results Error');}
-    });
+    });*/
     
 }
 

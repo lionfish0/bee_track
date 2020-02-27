@@ -12,10 +12,5 @@ class Tracking(Configurable):
         self.index = 0
         while True:
             index,photo = self.photo_queue.get()
-            print("Waiting for index to appear in record...")
-            for r in self.record:
-                if r['index'] == index:
-                    photo.append(r)
-                    
-            print(index)
-            print("---")
+            print("Got photo %d" % index)
+

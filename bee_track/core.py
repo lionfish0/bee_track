@@ -2,7 +2,7 @@ from flask import Flask, make_response, jsonify
 from bee_track.trigger import Trigger
 from bee_track.camera_aravis import Aravis_Camera as Camera
 from bee_track.tracking import Tracking
-import multiprocessing
+from multiprocessing import Process, Queue
 import numpy as np
 import io
 from flask_cors import CORS
@@ -12,9 +12,12 @@ import os
 from mem_top import mem_top
 from datetime import datetime as dt
 import subprocess
-from queue import Queue, Empty
+from queue import Empty
+import retrodetect as rd
 
+from flask_compress import Compress
 app = Flask(__name__)
+Compress(app)
 CORS(app)
 
 import logging
@@ -80,18 +83,18 @@ def startup():
         return "startup already complete"
     message_queue = Queue()
     trigger = Trigger(message_queue)
-    t = multiprocessing.Process(target=trigger.worker)
+    t = Process(target=trigger.worker)
     t.start()
     #trigger.run.set()
 
     global camera
     camera = Camera(message_queue,trigger.record)
-    t = multiprocessing.Process(target=camera.worker)
+
+    t = Process(target=camera.worker)
     t.start()
-    
     #global tracking
     #tracking = Tracking(message_queue,camera.photo_queue,trigger.record)
-    #t = multiprocessing.Process(target=tracking.worker)
+    #t = Process(target=tracking.worker)
     #t.start()
     return "startup successful"
     
@@ -105,7 +108,35 @@ def start():
 def stop():
     global trigger
     trigger.run.clear()
-    return "Collection Stopped"     
+    return "Collection Stopped"
+    
+def lowresmaximg(img,blocksize=10):
+    """
+    Downsample image, using maximum from each block
+    #from https://stackoverflow.com/questions/18645013/windowed-maximum-in-numpy
+    """
+    k = int(img.shape[0] / blocksize)
+    l = int(img.shape[1] / blocksize)
+    if blocksize==1:
+        maxes = img
+    else:
+        maxes = img[:k*blocksize,:l*blocksize].reshape(k,blocksize,l,blocksize).max(axis=(-1,-3))
+    return maxes
+    
+@app.route('/getrawtrackingimage/<int:number>')
+def getrawtrackingimage(number):
+    global camera
+    try:
+        print(camera.photo_queue.index)
+    except Empty:
+        return "No items"
+    photoitem = camera.photo_queue.read(number)
+    if photoitem is None:
+        return "Failed"
+    import time
+
+    img = lowresmaximg(photoitem[1],blocksize=10).astype(int)
+    return jsonify({'index':photoitem[0],'photo':img.tolist(),'record':photoitem[2]})
 
 startup()
 if __name__ == "__main__":

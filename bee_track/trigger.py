@@ -16,7 +16,7 @@ class Trigger(Configurable):
         self.trigger_pin = 3
         self.flashselection.append(0)
         self.t = multiprocessing.Value('d',t)
-        self.preptime = 0.05
+        self.preptime = 0.15
         self.triggertime = 0.07
         GPIO.setmode(GPIO.BOARD)
         for pin in self.flash_select_pins:

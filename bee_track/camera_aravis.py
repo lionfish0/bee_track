@@ -33,12 +33,7 @@ class Aravis_Camera(Camera):
         for i in range(0,8):
             self.stream.push_buffer(Aravis.Buffer.new_allocate(self.payload))        
         print("Ready")
-        buffer = self.stream.pop_buffer()
-        print("got buffer...")        
-#    def __init__(self):
-#        self.photo_queue = Queue()
-#        self.camera_config_queue = Queue()
-#        self.setup_camera()
+        
     
 
     def get_photo(self):
@@ -54,9 +49,12 @@ class Aravis_Camera(Camera):
             return None
         status = buffer.get_status()
         if status!=0:
+            print("Status Error")
+            print(status)
             self.stream.push_buffer(buffer) #return it to the buffer
             gc.collect()
             return None
+        print("buffer ok")
         raw = np.frombuffer(buffer.get_data(),dtype=np.uint8).astype(float)
         return np.reshape(raw,[1536,2048])
         
