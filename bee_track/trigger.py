@@ -16,8 +16,8 @@ class Trigger(Configurable):
         self.trigger_pin = 3
         self.flashselection.append(0)
         self.t = multiprocessing.Value('d',t)
-        self.preptime = 0.15
-        self.triggertime = 0.07
+        self.preptime = 0.02
+        self.triggertime = 0.02
         GPIO.setmode(GPIO.BOARD)
         for pin in self.flash_select_pins:
             GPIO.setup(pin, GPIO.OUT)
@@ -34,8 +34,7 @@ class Trigger(Configurable):
             print("Photo:    FLASH")
         else:
             print("Photo: No Flash")
-        self.record.append({'index':self.index,'direction':self.direction,'flash':fireflash,'flashselection':self.flashselection})
-        self.index+=1
+        
         if fireflash:
             for flash in self.flashselection:
                 GPIO.output(self.flash_select_pins[flash],True)
@@ -43,11 +42,15 @@ class Trigger(Configurable):
             for pin in self.flash_select_pins:
                 GPIO.output(pin, False)
         time.sleep(self.preptime)
+        triggertime = time.time()
         GPIO.output(self.trigger_pin,True)
         time.sleep(self.triggertime)
         for pin in self.flash_select_pins:
             GPIO.output(pin, False)
         GPIO.output(self.trigger_pin, False)
+        
+        self.record.append({'index':self.index,'direction':self.direction,'flash':fireflash,'flashselection':self.flashselection,'triggertime':triggertime})
+        self.index+=1
            
         
     def worker(self):   

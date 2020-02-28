@@ -122,19 +122,24 @@ def lowresmaximg(img,blocksize=10):
     else:
         maxes = img[:k*blocksize,:l*blocksize].reshape(k,blocksize,l,blocksize).max(axis=(-1,-3))
     return maxes
-    
-@app.route('/getrawtrackingimage/<int:number>')
-def getrawtrackingimage(number):
-    global camera
+
+@app.route('/getimagecount')
+def getimagecount():
     try:
-        print(camera.photo_queue.index)
+        return str(camera.photo_queue.len())
     except Empty:
         return "No items"
+
+@app.route('/getimage/<int:number>')
+def getimage(number):
+    global camera
+    #try:
+    #    print(camera.photo_queue.index)
+    #except Empty:
+    #    return "No items"
     photoitem = camera.photo_queue.read(number)
     if photoitem is None:
         return "Failed"
-    import time
-
     img = lowresmaximg(photoitem[1],blocksize=10).astype(int)
     return jsonify({'index':photoitem[0],'photo':img.tolist(),'record':photoitem[2]})
 

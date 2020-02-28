@@ -56,6 +56,7 @@ class Aravis_Camera(Camera):
             return None
         print("buffer ok")
         raw = np.frombuffer(buffer.get_data(),dtype=np.uint8).astype(float)
+        self.stream.push_buffer(buffer)
         return np.reshape(raw,[1536,2048])
         
     def close(self):

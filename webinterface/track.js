@@ -34,7 +34,7 @@ function convertJSONtoImageURL(data,drawcrosshairs) {
         }
     }
     
-    console.log(tracking.length)
+
     if (drawcrosshairs) {
         for (var i=0;i<tracking.length;i+=1){
             drawcrosshair(imdata,tracking[i],10,width,height)
@@ -68,7 +68,7 @@ function msg(message) {
 
 
 image = 0
-trackingimagecount = 0
+imagecount = 0
 $("input#url").val(window.location.hostname+":5000")
 url = "http://"+$('input#url').val()+"/setdatetime/"+getdatestring();
     $.ajax({
@@ -106,17 +106,21 @@ $('button#imageupx10').click(function(){image=image+10;})
 $('button#imagedownx10').click(function(){image=image-10;})
 
 setInterval(function(){ 
-    url = "http://"+$('input#url').val()+"/gettrackingimagecount";
+
+    url = "http://"+$('input#url').val()+"/getimagecount";
     $.ajax({
       url: url,
       success: function(data, status, jqXHR){
+
         newtic = data
-        if (newtic!=trackingimagecount)
+        if (newtic!=imagecount)
         {
-            trackingimagecount = newtic
+
+            imagecount = newtic
             msg("new image");
             if($("#latestimage").is(':checked')) {
-                image = trackingimagecount-1
+
+                image = imagecount-1
                 $('#download').click();
             }
         }
@@ -156,7 +160,7 @@ function drawcrosshair(imdata,track,imscale,width,height) {
     for (ystep=y-10;ystep<y+10;ystep+=1) {
         drawpixel(imdata,x,ystep,width,height)
     }
-    console.log(pos)
+
 }
 
 function convertJSONtoImageURL(data,drawcrosshairs) {
@@ -195,12 +199,6 @@ function convertJSONtoImageURL(data,drawcrosshairs) {
         }
     }
     
-    /*console.log(tracking.length)
-    if (drawcrosshairs) {
-        for (var i=0;i<tracking.length;i+=1){
-            drawcrosshair(imdata,tracking[i],10,width,height)
-        }
-    }*/
 
     // put the modified pixels back on the canvas
     ctx.putImageData(imgData,0,0);
@@ -212,12 +210,13 @@ $('button.refreshimages').click(function(){refreshimages();});
 
 $('input#maxval').bind('input',function() {refreshimages();});
 function refreshimages(){
+
     $('span#index').text(image+1);//have to add one as python is zero indexed
-    $('span#trackingimagecount').text(trackingimagecount);
+    $('span#imagecount').text(imagecount);
     msg('Downloading...');
     
     
-    url = "http://"+$('input#url').val()+"/getrawtrackingimage/"+image;
+    url = "http://"+$('input#url').val()+"/getimage/"+image;
     $.getJSON(url, function(data) {$('#image').css("background-image",convertJSONtoImageURL(data)); });
     /*url = "http://"+$('input#url').val()+"/getrawtrackingimage/"+image;
     $.getJSON(url, function(data) {$('#noflash_image').css("background-image",convertJSONtoImageURL(data,1)); });
@@ -250,7 +249,6 @@ $('button#setinterval').click(function(){
 });
 
 function sendinstruction(instruction){
-    console.log(instruction); 
     msg(instruction);
     url = "http://"+$('input#url').val()+instruction;
     $.ajax({
