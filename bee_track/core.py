@@ -69,11 +69,15 @@ def get(component,field):
 
 @app.route('/getmessage')
 def getmessage():
+    msgs = ""
     try:
-        msg = message_queue.get_nowait()
-        return str(msg) +"\n"
+        
+        while (True):
+            msg = message_queue.get_nowait()
+            msgs = msgs + str(msg) +"\n"
+        #return msgs
     except Empty:
-        return ""
+        return msgs
 
 @app.route('/startup')
 def startup():
@@ -139,6 +143,8 @@ def getimage(number):
     #    return "No items"
     photoitem = camera.photo_queue.read(number)
     if photoitem is None:
+        global message_queue
+        message_queue.put("Photo %d doesn't exist" % number)
         return "Failed"
     img = lowresmaximg(photoitem[1],blocksize=10).astype(int)
     return jsonify({'index':photoitem[0],'photo':img.tolist(),'record':photoitem[2]})

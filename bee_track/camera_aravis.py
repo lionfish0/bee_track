@@ -30,7 +30,7 @@ class Aravis_Camera(Camera):
             print("Failed to construct stream")
             return
         self.aravis_camera.start_acquisition()
-        for i in range(0,8):
+        for i in range(0,16):
             self.stream.push_buffer(Aravis.Buffer.new_allocate(self.payload))        
         print("Ready")
         
@@ -43,7 +43,7 @@ class Aravis_Camera(Camera):
         buffer = self.stream.pop_buffer()
         print("got buffer...")
         if buffer is None:
-            
+            self.message_queue.put("Buffer read failed")
             print("buffer read failed")
             gc.collect()            
             return None
@@ -51,6 +51,7 @@ class Aravis_Camera(Camera):
         if status!=0:
             print("Status Error")
             print(status)
+            self.message_queue.put("Buffer Error: "+str(status))            
             self.stream.push_buffer(buffer) #return it to the buffer
             gc.collect()
             return None

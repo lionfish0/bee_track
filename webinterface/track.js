@@ -61,7 +61,8 @@ function getdatestring() {
 }
     
 function msg(message) {
-    $("#console").val($("#console").val() + message + "\n");
+    if (message.slice(-1) != '\n') {message=message + "\n";}
+    $("#console").val($("#console").val() + message);// + "\n");
     var con = $('#console');
     con.scrollTop(con[0].scrollHeight - con.height());
 }
@@ -238,7 +239,7 @@ function refreshimages(){
 
 $('button#setinterval').click(function(){
     msg('Setting...');
-    url = "http://"+$('input#url').val()+"/setinterval/"+$('input#interval').val();
+    url = "http://"+$('input#url').val()+"/set/trigger/t/"+$('input#interval').val();
     $.ajax({
       url: url,
       success: function(data, status, jqXHR){

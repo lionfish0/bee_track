@@ -3,6 +3,7 @@ from QueueBuffer import QueueBuffer
 from configurable import Configurable
 from multiprocessing import Value, Queue
 import threading
+import pickle
 
 class Camera(Configurable):
     def setup_camera(self):
@@ -14,9 +15,10 @@ class Camera(Configurable):
         Pass record list from trigger
         """
         super().__init__(message_queue)
-        self.photo_queue = QueueBuffer(2000) 
+        self.photo_queue = QueueBuffer(20) 
         self.record = record  
         self.index = Value('i',0)
+        self.savephotos = True
     def get_photo(self):
         """Blocking, returns a photo numpy array"""
         pass
@@ -40,16 +42,22 @@ class Camera(Configurable):
                     break
             print("found")
             print(self.photo_queue.len())
-            if last_photo_object is not None:
+            if (photo is not None) and (last_photo_object is not None) and (last_photo_object[1] is not None):
                 print(rec['flash'])
                 print(last_photo_object[2]['direction'],rec['direction'])
                 print(last_photo_object[2]['triggertime'],rec['triggertime'])
                 if (last_photo_object[2]['direction']==rec['direction']) and (last_photo_object[2]['triggertime']>rec['triggertime']-0.1):
                     rec['photoaverages'] = {'this':np.mean(photo[1]),'last':np.mean(last_photo_object[1])}
-                    
+            if photo is not None:
+                photo = photo.astype(np.ubyte)
             photo_object = [self.index.value,photo,rec]
             last_photo_object = photo_object
             self.photo_queue.put(photo_object)
+            if self.savephotos:
+                filename = 'photo_object_%04i.np' % self.index.value
+                self.message_queue.put("Saved Photo: %s" % filename)
+                pickle.dump(photo_object,open(filename,'wb'))
+                #np.save(open('photo_%04i.np' % self.index.value,'wb'),photo.astype(np.ubyte))                
             self.index.value = self.index.value + 1
             
                 
