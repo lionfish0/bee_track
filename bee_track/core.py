@@ -137,17 +137,26 @@ def getimagecount():
 @app.route('/getimage/<int:number>')
 def getimage(number):
     global camera
-    #try:
-    #    print(camera.photo_queue.index)
-    #except Empty:
-    #    return "No items"
     photoitem = camera.photo_queue.read(number)
     if photoitem is None:
         global message_queue
         message_queue.put("Photo %d doesn't exist" % number)
         return "Failed"
-    img = lowresmaximg(photoitem[1],blocksize=10).astype(int)
+    img = lowresmaximg(photoitem[1],blocksize=20).astype(int)
     return jsonify({'index':photoitem[0],'photo':img.tolist(),'record':photoitem[2]})
+
+@app.route('/getimagecentre/<int:number>')
+def getimagecentre(number):
+    global camera
+    photoitem = camera.photo_queue.read(number)
+    if photoitem is None:
+        global message_queue
+        message_queue.put("Photo %d doesn't exist" % number)
+        return "Failed"
+    middle = [int(photoitem[1].shape[0]/2),int(photoitem[1].shape[1]/2)]
+    img = (photoitem[1][middle[0]-150:middle[0]+150,middle[1]-150:middle[1]+150]).astype(int)
+    return jsonify({'index':photoitem[0],'photo':img.tolist(),'record':photoitem[2]})
+
 
 startup()
 if __name__ == "__main__":

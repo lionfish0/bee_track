@@ -20,8 +20,8 @@ class Aravis_Camera(Camera):
         self.aravis_camera = Aravis.Camera.new (None)
         self.aravis_camera.set_region(0,0,2048,1536) #2064x1544        
         self.aravis_camera.gv_set_packet_size(8000)
-        self.aravis_camera.set_exposure_time(1000)#us
-        self.aravis_camera.set_gain(1)
+        self.aravis_camera.set_exposure_time(100)#us
+        self.aravis_camera.set_gain(0)
         self.aravis_camera.set_pixel_format (Aravis.PIXEL_FORMAT_MONO_8)
         self.aravis_camera.set_trigger("Line1")        
         self.payload = self.aravis_camera.get_payload()
@@ -31,7 +31,12 @@ class Aravis_Camera(Camera):
             return
         self.aravis_camera.start_acquisition()
         for i in range(0,16):
-            self.stream.push_buffer(Aravis.Buffer.new_allocate(self.payload))        
+            self.stream.push_buffer(Aravis.Buffer.new_allocate(self.payload))
+        #print("------------")
+        #print(self.aravis_camera.get_gain_auto())
+        #print(self.aravis_camera.get_gain())        
+        #print(self.aravis_camera.get_exposure_time_auto())        
+        #print(self.aravis_camera.get_exposure_time())
         print("Ready")
         
     

@@ -18,8 +18,9 @@
     position:absolute;
     left:350px;
     top:350px;
-    width:200px;
-    height:200px;
+    width:300px;
+    height:300px;
+    background-size: 300px 300px;
     background-image:url("nodata.png");
 }
 #title_centre {

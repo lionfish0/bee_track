@@ -1,4 +1,5 @@
 import time
+import datetime
 import RPi.GPIO as GPIO
 from configurable import Configurable
 import multiprocessing
@@ -43,13 +44,15 @@ class Trigger(Configurable):
                 GPIO.output(pin, False)
         time.sleep(self.preptime)
         triggertime = time.time()
+        triggertimestring = datetime.datetime.now() #need to convert to string later
         GPIO.output(self.trigger_pin,True)
         time.sleep(self.triggertime)
         for pin in self.flash_select_pins:
             GPIO.output(pin, False)
         GPIO.output(self.trigger_pin, False)
+        triggertimestring = triggertimestring.strftime("%Y%m%d_%H:%M:%S.%f")
         
-        self.record.append({'index':self.index,'direction':self.direction,'flash':fireflash,'flashselection':self.flashselection,'triggertime':triggertime})
+        self.record.append({'index':self.index,'direction':self.direction,'flash':fireflash,'flashselection':self.flashselection,'triggertime':triggertime,'triggertimestring':triggertimestring})
         self.index+=1
            
         

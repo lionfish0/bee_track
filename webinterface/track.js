@@ -218,23 +218,10 @@ function refreshimages(){
     
     
     url = "http://"+$('input#url').val()+"/getimage/"+image;
-    $.getJSON(url, function(data) {$('#image').css("background-image",convertJSONtoImageURL(data)); });
-    /*url = "http://"+$('input#url').val()+"/getrawtrackingimage/"+image;
-    $.getJSON(url, function(data) {$('#noflash_image').css("background-image",convertJSONtoImageURL(data,1)); });
-    url = "http://"+$('input#url').val()+"/getrawtrackingimage/"+image+"/0/0";
-    $.getJSON(url, function(data) {$('#flash_image_centre').css("background-image",convertJSONtoImageURL(data)); });
-    url = "http://"+$('input#url').val()+"/getrawtrackingimage/"+image+"/1/0";
-    $.getJSON(url, function(data) {$('#noflash_image_centre').css("background-image",convertJSONtoImageURL(data)); });
+    $.getJSON(url, function(data) {$('#image').css("background-image",convertJSONtoImageURL(data)); }); 
     
-    url = "http://"+$('input#url').val()+"/imagestats/"+image
-    $.ajax({
-      url: url,
-      success: function(data, status, jqXHR){
-        $('span#trackingresults').text(data);
-      },
-      error: function(jqXHR, status, errorThrown){msg('Download tracking results Error');}
-    });*/
-    
+    url = "http://"+$('input#url').val()+"/getimagecentre/"+image;
+    $.getJSON(url, function(data) {$('#image_centre').css("background-image",convertJSONtoImageURL(data)); }); 
 }
 
 $('button#setinterval').click(function(){

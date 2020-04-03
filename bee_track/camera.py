@@ -54,7 +54,8 @@ class Camera(Configurable):
             last_photo_object = photo_object
             self.photo_queue.put(photo_object)
             if self.savephotos:
-                filename = 'photo_object_%04i.np' % self.index.value
+                triggertime_string = photo_object[2]['triggertimestring']
+                filename = 'photo_object_%s_%04i.np' % (triggertime_string,self.index.value)
                 self.message_queue.put("Saved Photo: %s" % filename)
                 pickle.dump(photo_object,open(filename,'wb'))
                 #np.save(open('photo_%04i.np' % self.index.value,'wb'),photo.astype(np.ubyte))                
