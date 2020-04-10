@@ -47,7 +47,7 @@ class Camera(Configurable):
                 print(last_photo_object[2]['direction'],rec['direction'])
                 print(last_photo_object[2]['triggertime'],rec['triggertime'])
                 if (last_photo_object[2]['direction']==rec['direction']) and (last_photo_object[2]['triggertime']>rec['triggertime']-0.1):
-                    rec['photoaverages'] = {'this':np.mean(photo[1]),'last':np.mean(last_photo_object[1])}
+                    rec['photoaverages'] = {'this':np.mean(photo[1].flatten()),'last':np.mean(last_photo_object[1].flatten())}
             if photo is not None:
                 photo = photo.astype(np.ubyte)
             photo_object = [self.index.value,photo,rec]
