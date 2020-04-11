@@ -96,10 +96,11 @@ def startup():
 
     t = Process(target=camera.worker)
     t.start()
-    #global tracking
-    #tracking = Tracking(message_queue,camera.photo_queue,trigger.record)
-    #t = Process(target=tracking.worker)
-    #t.start()
+    
+    global tracking
+    tracking = Tracking(message_queue,camera.photo_queue)
+    t = Process(target=tracking.worker)
+    t.start()
     return "startup successful"
     
 @app.route('/start')

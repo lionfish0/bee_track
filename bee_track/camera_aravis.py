@@ -20,7 +20,7 @@ class Aravis_Camera(Camera):
         self.aravis_camera = Aravis.Camera.new (None)
         self.aravis_camera.set_region(0,0,2048,1536) #2064x1544        
         self.aravis_camera.gv_set_packet_size(8000)
-        self.aravis_camera.set_exposure_time(100)#us
+        self.aravis_camera.set_exposure_time(15)#us
         self.aravis_camera.set_gain(0)
         self.aravis_camera.set_pixel_format (Aravis.PIXEL_FORMAT_MONO_8)
         self.aravis_camera.set_trigger("Line1")        

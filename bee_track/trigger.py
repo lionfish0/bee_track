@@ -30,7 +30,12 @@ class Trigger(Configurable):
         print("Running")
         self.run = multiprocessing.Event()
     
-    def trigger_camera(self,fireflash):
+    def trigger_camera(self,fireflash,endofset):
+        """
+            Send trigger to camera (and flash)
+            fireflash = boolean: true=fire flash
+            endofset = boolean: whether this is the last photo of a set (this will then tell the tracking system to look for the bee).
+        """
         if fireflash:
             print("Photo:    FLASH")
         else:
@@ -52,14 +57,14 @@ class Trigger(Configurable):
         GPIO.output(self.trigger_pin, False)
         triggertimestring = triggertimestring.strftime("%Y%m%d_%H:%M:%S.%f")
         
-        self.record.append({'index':self.index,'direction':self.direction,'flash':fireflash,'flashselection':self.flashselection,'triggertime':triggertime,'triggertimestring':triggertimestring})
+        self.record.append({'index':self.index,'endofset':endofset,'direction':self.direction,'flash':fireflash,'flashselection':self.flashselection,'triggertime':triggertime,'triggertimestring':triggertimestring})
         self.index+=1
            
         
     def worker(self):   
         while (True):
             self.run.wait()
-            self.trigger_camera(False)            
-            self.trigger_camera(True)
-            self.trigger_camera(False)
+            self.trigger_camera(False,False)            
+            self.trigger_camera(True,False)
+            self.trigger_camera(False,True)
             time.sleep(self.t.value-self.triggertime*3-self.preptime*3)
