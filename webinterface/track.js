@@ -1,51 +1,3 @@
-function convertJSONtoImageURL(data,drawcrosshairs) {
-    img = data['image']
-    tracking = data['tracking']
-    height = img.length
-    width = img[0].length
-
-    var canvas=document.createElement("canvas");
-    var ctx=canvas.getContext("2d");
-
-    // size the canvas to your desired image
-    canvas.width=width;
-    canvas.height=height;
-
-    // get the imageData and pixel array from the canvas
-    var imgData=ctx.getImageData(0,0,width,height);
-    var imdata=imgData.data;
-
-    // manipulate some pixel elements
-    row = height-1;
-    col = 0;
-    scale = 255/$('input#maxval').val()
-
-    for(var i=0;i<imdata.length;i+=4){
-        c = img[row][col]*scale;
-        if (c>255) {c=255;}
-        imdata[i]=c;
-        imdata[i+1] = c;
-        imdata[i+2] = c;
-        imdata[i+3]=255; // make this pixel opaque
-        col = col + 1;
-        if (col>=width) {
-          col = 0;
-          row = row - 1;
-        }
-    }
-    
-
-    if (drawcrosshairs) {
-        for (var i=0;i<tracking.length;i+=1){
-            drawcrosshair(imdata,tracking[i],10,width,height)
-        }
-    }
-
-    // put the modified pixels back on the canvas
-    ctx.putImageData(imgData,0,0);
-    return "url('"+canvas.toDataURL()+"')";
-}
-
 function getdatestring() {
     //https://stackoverflow.com/a/25835182
     var d = new Date();
@@ -131,6 +83,25 @@ setInterval(function(){
       });
 }, 1000);
 
+
+setInterval(function(){ 
+    if($("#contactimage").is(':checked')) {
+        url = "http://"+$('input#url').val()+"/getcontact";
+        $.ajax({
+          url: url,
+          success: function(data, status, jqXHR){
+            if (data!=null) {
+                $('#beep').get(0).play();  
+                image = data['index']-1
+                $('#download').click();
+            }
+          }
+          
+          
+          });
+    }
+}, 1000);
+
 setInterval(function(){ 
     url = "http://"+$('input#url').val()+"/getmessage";
     $.ajax({
@@ -152,9 +123,9 @@ function drawpixel(imdata,x,y,width,height) {
     imdata[pos+2] = 0
 }
 
-function drawcrosshair(imdata,track,imscale,width,height) {
-    x=Math.round(track[1]/imscale)
-    y=height-Math.round(track[0]/imscale)
+function drawcrosshair(imdata,x,y,imscale,width,height) {
+    x=Math.round(x/imscale)
+    y=height-Math.round(y/imscale)
     for (xstep=x-10;xstep<x+10;xstep+=1) {
         drawpixel(imdata,xstep,y,width,height)
     }
@@ -199,8 +170,19 @@ function convertJSONtoImageURL(data,drawcrosshairs) {
           row = row - 1;
         }
     }
-    
+//    console.log(data)
 
+//    drawcrosshair(imdata,20,60,20,width,height)
+//    if ('track' in data)
+//    {
+//        console.log(data['track'])
+//        if (data['track']!=null) {
+//            alert("!!!")
+//            console.log(data['track']['x'])
+//            console.log(data['track']['y'])
+//            drawcrosshair(imdata,data['track']['x'],data['track']['y'],20,width,height)
+//        }
+//    }
     // put the modified pixels back on the canvas
     ctx.putImageData(imgData,0,0);
     return "url('"+canvas.toDataURL()+"')";
@@ -211,7 +193,7 @@ $('button.refreshimages').click(function(){refreshimages();});
 
 $('input#maxval').bind('input',function() {refreshimages();});
 function refreshimages(){
-
+    //$('audio#beep')[0].play();
     $('span#index').text(image+1);//have to add one as python is zero indexed
     $('span#imagecount').text(imagecount);
     msg('Downloading...');

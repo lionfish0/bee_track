@@ -115,6 +115,14 @@ def stop():
     trigger.run.clear()
     return "Collection Stopped"
     
+@app.route('/test/<int:enable>')
+def test(enable):
+    global camera
+    camera.test.value = bool(enable)
+    if camera.test.value: return "Testing Enabled"
+    else: return "Testing Disabled"
+    
+    
 def lowresmaximg(img,blocksize=10):
     """
     Downsample image, using maximum from each block
@@ -143,8 +151,38 @@ def getimage(number):
         global message_queue
         message_queue.put("Photo %d doesn't exist" % number)
         return "Failed"
+    if photoitem[1] is None:
+        global message_queue
+        message_queue.put("Photo %d failed" % number)
+        return "Failed"
     img = lowresmaximg(photoitem[1],blocksize=20).astype(int)
-    return jsonify({'index':photoitem[0],'photo':img.tolist(),'record':photoitem[2]})
+    #if len(photoitem)>3:
+    #    track = photoitem[3].copy() 
+    #    track['patch']=track['patch'].tolist() #makes it jsonable
+    #    track['mean']=float(track['mean'])
+    #    track['searchmax']=float(track['searchmax'])
+    #    track['x']=int(track['x'])
+    #    track['y']=int(track['y'])
+    #else:
+    #    track = None
+    return jsonify({'index':photoitem[0],'photo':img.tolist(),'record':photoitem[2]})#,'track':track})
+
+@app.route('/getcontact')
+def getcontact():
+    global tracking
+    try:
+        photoitem = tracking.tracking_queue.get_nowait()
+        img = lowresmaximg(photoitem[1],blocksize=20).astype(int)
+        track = photoitem[3].copy()
+        track['patch']=track['patch'].tolist() #makes it jsonable
+        track['mean']=float(track['mean'])
+        track['searchmax']=float(track['searchmax'])
+        track['x']=int(track['x'])
+        track['y']=int(track['y'])        
+        return jsonify({'index':photoitem[0],'photo':img.tolist(),'record':photoitem[2],'track':track})
+    except Empty:
+        return jsonify(None)
+        
 
 @app.route('/getimagecentre/<int:number>')
 def getimagecentre(number):
@@ -154,8 +192,15 @@ def getimagecentre(number):
         global message_queue
         message_queue.put("Photo %d doesn't exist" % number)
         return "Failed"
+    if photoitem[1] is None:
+        global message_queue
+        message_queue.put("Photo %d failed" % number)
+        return "Failed"
     middle = [int(photoitem[1].shape[0]/2),int(photoitem[1].shape[1]/2)]
     img = (photoitem[1][middle[0]-150:middle[0]+150,middle[1]-150:middle[1]+150]).astype(int)
+    
+
+    
     return jsonify({'index':photoitem[0],'photo':img.tolist(),'record':photoitem[2]})
 
 

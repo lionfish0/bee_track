@@ -3,9 +3,9 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 <head>
  <script src="jquery-3.3.1.min.js"></script>
-
 </head>
 <body>
+<audio id="beep" src="beep.mp3" type="audio/mpeg"></audio>    
 <h3>Bumblebee Tracking System v2.0</h3>
 <div id="config">
 <input id="url" value="10.3.141.1:5000" />
@@ -23,6 +23,7 @@ Interval <input id="interval" value=3 size=2/> seconds
 <button id="imageupx10" class="refreshimages">&gt;&gt;</button>
 <br />
 <input type="checkbox" id="latestimage">Update to latest image</input>
+<input type="checkbox" id="contactimage">Update for contact</input>
 <br />
 <br />Image <span id="index">0</span> of <span id="imagecount">?</span><br />
 Image threshold: <input id="maxval" size=3 value=10 />

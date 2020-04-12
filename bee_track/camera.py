@@ -19,6 +19,7 @@ class Camera(Configurable):
         self.record = record  
         self.index = Value('i',0)
         self.savephotos = True
+        self.test = Value('b',False)
     def get_photo(self):
         """Blocking, returns a photo numpy array"""
         pass
@@ -47,10 +48,20 @@ class Camera(Configurable):
                 print(last_photo_object[2]['direction'],rec['direction'])
                 print(last_photo_object[2]['triggertime'],rec['triggertime'])
                 if (last_photo_object[2]['direction']==rec['direction']) and (last_photo_object[2]['triggertime']>rec['triggertime']-0.1):
-                    rec['photoaverages'] = {'this':np.mean(photo[1].flatten()),'last':np.mean(last_photo_object[1].flatten())}
+                    rec['photoaverages'] = {'this':np.mean(photo[1].flatten()),'last':np.mean(last_photo_object[1].flatten())} #TODO I'm not sure this is used. delete?
             if photo is not None:
                 photo = photo.astype(np.ubyte)
             photo_object = [self.index.value,photo,rec]
+            
+            if self.test:
+                if photo_object[2]['flash']:
+                    if photo_object[1] is not None:
+                        print("Test Point Added")
+                        y,x = np.unravel_index(photo_object[1][100:-100,100:-100].argmin(), photo_object[1][100:-100,100:-100].shape)
+                        print(y,x)
+                        photo_object[1][y+100,x+100] = 255 #put it at minimum!
+                    #photo_object[1][100+np.random.randint(photo_object[1].shape[0]-200),100+np.random.randint(photo_object[1].shape[1]-200)]=255 #bright spot!
+            
             last_photo_object = photo_object
             self.photo_queue.put(photo_object)
             if self.savephotos:
