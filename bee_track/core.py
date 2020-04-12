@@ -156,30 +156,40 @@ def getimage(number):
         message_queue.put("Photo %d failed" % number)
         return "Failed"
     img = lowresmaximg(photoitem[1],blocksize=20).astype(int)
-    #if len(photoitem)>3:
-    #    track = photoitem[3].copy() 
-    #    track['patch']=track['patch'].tolist() #makes it jsonable
-    #    track['mean']=float(track['mean'])
-    #    track['searchmax']=float(track['searchmax'])
-    #    track['x']=int(track['x'])
-    #    track['y']=int(track['y'])
-    #else:
-    #    track = None
-    return jsonify({'index':photoitem[0],'photo':img.tolist(),'record':photoitem[2]})#,'track':track})
+    if (len(photoitem)>3) and (photoitem[3] is not None):
+        newtracklist = []
+        for track in photoitem[3]:
+            track['patch']=track['patch'].tolist() #makes it jsonable
+            track['mean']=float(track['mean'])
+            track['searchmax']=float(track['searchmax'])
+            track['centremax']=float(track['centremax'])
+            track['x']=int(track['x'])
+            track['y']=int(track['y'])
+            newtracklist.append(track)
+    else:
+        newtracklist = []
+    return jsonify({'index':photoitem[0],'photo':img.tolist(),'record':photoitem[2],'track':newtracklist})
 
 @app.route('/getcontact')
 def getcontact():
     global tracking
     try:
         photoitem = tracking.tracking_queue.get_nowait()
-        img = lowresmaximg(photoitem[1],blocksize=20).astype(int)
-        track = photoitem[3].copy()
-        track['patch']=track['patch'].tolist() #makes it jsonable
-        track['mean']=float(track['mean'])
-        track['searchmax']=float(track['searchmax'])
-        track['x']=int(track['x'])
-        track['y']=int(track['y'])        
-        return jsonify({'index':photoitem[0],'photo':img.tolist(),'record':photoitem[2],'track':track})
+        if photoitem[1] is not None:
+            img = lowresmaximg(photoitem[1],blocksize=20).astype(int).tolist()
+        else:
+            img = None
+        newtracklist = []
+        for trackoriginal in photoitem[3]:
+            track = trackoriginal.copy()
+            track['patch']=track['patch'].tolist() #makes it jsonable
+            track['mean']=float(track['mean'])
+            track['searchmax']=float(track['searchmax'])
+            track['centremax']=float(track['centremax'])            
+            track['x']=int(track['x'])
+            track['y']=int(track['y']) 
+            newtracklist.append(track)       
+        return jsonify({'index':photoitem[0],'photo':img,'record':photoitem[2],'track':newtracklist})
     except Empty:
         return jsonify(None)
         

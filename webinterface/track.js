@@ -91,6 +91,7 @@ setInterval(function(){
           url: url,
           success: function(data, status, jqXHR){
             if (data!=null) {
+                console.log(data);
                 $('#beep').get(0).play();  
                 image = data['index']-1
                 $('#download').click();
@@ -173,16 +174,16 @@ function convertJSONtoImageURL(data,drawcrosshairs) {
 //    console.log(data)
 
 //    drawcrosshair(imdata,20,60,20,width,height)
-//    if ('track' in data)
-//    {
-//        console.log(data['track'])
-//        if (data['track']!=null) {
-//            alert("!!!")
-//            console.log(data['track']['x'])
-//            console.log(data['track']['y'])
-//            drawcrosshair(imdata,data['track']['x'],data['track']['y'],20,width,height)
-//        }
-//    }
+    if ('track' in data) {
+        if ((data['track']!=null) && (data['track'].length>0)) {
+            console.log(data['track']);
+            for (var i=0;i<10;i++){
+                msg([data['track'][i]['searchmax'],data['track'][i]['mean'],data['track'][i]['centremax']])
+                drawcrosshair(imdata,data['track'][i]['x'],data['track'][i]['y'],20,width,height);
+            }
+            
+        }
+    }
     // put the modified pixels back on the canvas
     ctx.putImageData(imgData,0,0);
     return "url('"+canvas.toDataURL()+"')";

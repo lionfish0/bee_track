@@ -17,9 +17,17 @@ class Tracking(Configurable):
             index,photoitem = self.photo_queue.pop()
             print("Got photo %d" % index)
             if photoitem[2]['endofset']:
-                contact = detectcontact(self.photo_queue,index)#,thresholds=[10,3,7])
+                contact, found = detectcontact(self.photo_queue,index)#,thresholds=[10,3,7])
                 photoitem.append(contact)
+                self.photo_queue.put(photoitem,index)
+                
+
+                oldphotoitem = self.photo_queue.read(index-1)
+                oldphotoitem.append(contact)
+                self.photo_queue.put(oldphotoitem,index-1)
+                
+                
                 print("Contact status")
-                print(contact)
+                print(contact,found)
                 if contact is not None:
                     self.tracking_queue.put(photoitem)
