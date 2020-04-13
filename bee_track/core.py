@@ -155,7 +155,7 @@ def getimage(number):
         global message_queue
         message_queue.put("Photo %d failed" % number)
         return "Failed"
-    img = lowresmaximg(photoitem[1],blocksize=20).astype(int)
+    img = lowresmaximg(photoitem[1],blocksize=10).astype(int)
     if (len(photoitem)>3) and (photoitem[3] is not None):
         newtracklist = []
         for track in photoitem[3]:
@@ -176,7 +176,7 @@ def getcontact():
     try:
         photoitem = tracking.tracking_queue.get_nowait()
         if photoitem[1] is not None:
-            img = lowresmaximg(photoitem[1],blocksize=20).astype(int).tolist()
+            img = lowresmaximg(photoitem[1],blocksize=10).astype(int).tolist()
         else:
             img = None
         newtracklist = []

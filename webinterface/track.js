@@ -137,8 +137,10 @@ function drawpixel(imdata,x,y,width,height) {
 }
 
 function drawcrosshair(imdata,x,y,size,imscale,width,height) {
+    size = size + 3; //corrects for removed pixels around centre of reticule
     x=Math.round(x/imscale)
-    y=height-Math.round(y/imscale)
+    //y=height-Math.round(y/imscale)
+    y=Math.round(y/imscale)
     for (xstep=x-size;xstep<x+size;xstep+=1) {
         if (Math.abs(xstep-x)>3) {
             drawpixel(imdata,xstep,y,width,height) }
@@ -168,7 +170,7 @@ function convertJSONtoImageURL(data) {
     var imdata=imgData.data;
 
     // manipulate some pixel elements
-    row = height-1;
+    row = 0; //height-1;
     col = 0;
     scale = 255/$('input#maxval').val()
 
@@ -182,18 +184,16 @@ function convertJSONtoImageURL(data) {
         col = col + 1;
         if (col>=width) {
           col = 0;
-          row = row - 1;
+          row = row + 1;
         }
     }
-//    console.log(data)
 
-//    drawcrosshair(imdata,20,60,20,width,height)
     if ('track' in data) {
         if ((data['track']!=null) && (data['track'].length>0)) {
             console.log(data['track']);
             for (var i=0;i<10;i++){
                 msg([data['track'][i]['searchmax'],data['track'][i]['mean'],data['track'][i]['centremax']])
-                drawcrosshair(imdata,data['track'][i]['x'],data['track'][i]['y'],Math.round(data['track'][i]['searchmax']/20),20,width,height);
+                drawcrosshair(imdata,data['track'][i]['x'],data['track'][i]['y'],Math.round(data['track'][i]['searchmax']/10),10,width,height);
             }
             
         }

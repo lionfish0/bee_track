@@ -4,6 +4,7 @@ from configurable import Configurable
 #import threading
 from retrodetect import detectcontact
 from multiprocessing import Process, Queue
+import pickle
 
 class Tracking(Configurable):
     def __init__(self,message_queue,photo_queue):
@@ -22,9 +23,15 @@ class Tracking(Configurable):
                 self.photo_queue.put(photoitem,index)
                 
 
+                #TODO loop backwards until we reach earlier endofset
                 oldphotoitem = self.photo_queue.read(index-1)
                 oldphotoitem.append(contact)
                 self.photo_queue.put(oldphotoitem,index-1)
+                
+                triggertime_string = oldphotoitem[2]['triggertimestring']
+                filename = 'tracking_photo_object_%s_%04i.np' % (triggertime_string,index-1)
+                self.message_queue.put("Saved Tracking Photo: %s" % filename)
+                pickle.dump(oldphotoitem,open(filename,'wb'))
                 
                 
                 print("Contact status")
