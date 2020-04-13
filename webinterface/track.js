@@ -84,15 +84,24 @@ setInterval(function(){
 }, 1000);
 
 
+
+
+
+
 setInterval(function(){ 
     if($("#contactimage").is(':checked')) {
         url = "http://"+$('input#url').val()+"/getcontact";
         $.ajax({
           url: url,
           success: function(data, status, jqXHR){
-            if (data!=null) {
-                console.log(data);
-                $('#beep').get(0).play();  
+            if (data!=null) {$('#beep').get(0).play();}
+            if ((data!=null) && ('track' in data) && (data['track']!=null) && (data['track'].length>0)) {
+
+                confident = false;
+                for (var i=0;i<10;i++){
+                    confident = confident | data['track'][i]['confident']; //true if any of the patches is true
+                }
+                if (confident) {$('#beep2s').get(0).play();}
                 image = data['index']-1
                 $('#download').click();
             }
@@ -102,6 +111,9 @@ setInterval(function(){
           });
     }
 }, 1000);
+
+
+
 
 setInterval(function(){ 
     url = "http://"+$('input#url').val()+"/getmessage";
@@ -124,19 +136,21 @@ function drawpixel(imdata,x,y,width,height) {
     imdata[pos+2] = 0
 }
 
-function drawcrosshair(imdata,x,y,imscale,width,height) {
+function drawcrosshair(imdata,x,y,size,imscale,width,height) {
     x=Math.round(x/imscale)
     y=height-Math.round(y/imscale)
-    for (xstep=x-10;xstep<x+10;xstep+=1) {
-        drawpixel(imdata,xstep,y,width,height)
+    for (xstep=x-size;xstep<x+size;xstep+=1) {
+        if (Math.abs(xstep-x)>3) {
+            drawpixel(imdata,xstep,y,width,height) }
     }
-    for (ystep=y-10;ystep<y+10;ystep+=1) {
-        drawpixel(imdata,x,ystep,width,height)
+    for (ystep=y-size;ystep<y+size;ystep+=1) {
+        if (Math.abs(ystep-y)>3) {
+            drawpixel(imdata,x,ystep,width,height) }
     }
 
 }
 
-function convertJSONtoImageURL(data,drawcrosshairs) {
+function convertJSONtoImageURL(data) {
     img = data['photo']
     record = data['record']
     height = img.length
@@ -179,7 +193,7 @@ function convertJSONtoImageURL(data,drawcrosshairs) {
             console.log(data['track']);
             for (var i=0;i<10;i++){
                 msg([data['track'][i]['searchmax'],data['track'][i]['mean'],data['track'][i]['centremax']])
-                drawcrosshair(imdata,data['track'][i]['x'],data['track'][i]['y'],20,width,height);
+                drawcrosshair(imdata,data['track'][i]['x'],data['track'][i]['y'],Math.round(data['track'][i]['searchmax']/20),20,width,height);
             }
             
         }
