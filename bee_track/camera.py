@@ -15,7 +15,7 @@ class Camera(Configurable):
         Pass record list from trigger
         """
         super().__init__(message_queue)
-        self.photo_queue = QueueBuffer(20) 
+        self.photo_queue = QueueBuffer(10) 
         self.record = record  
         self.index = Value('i',0)
         self.savephotos = True
@@ -43,29 +43,32 @@ class Camera(Configurable):
                     break
             print("found")
             print(self.photo_queue.len())
-            if (photo is not None) and (last_photo_object is not None) and (last_photo_object[1] is not None):
+            if (photo is not None) and (last_photo_object is not None) and (last_photo_object['img'] is not None):
                 print(rec['flash'])
-                print(last_photo_object[2]['direction'],rec['direction'])
-                print(last_photo_object[2]['triggertime'],rec['triggertime'])
-                if (last_photo_object[2]['direction']==rec['direction']) and (last_photo_object[2]['triggertime']>rec['triggertime']-0.1):
-                    rec['photoaverages'] = {'this':np.mean(photo[1].flatten()),'last':np.mean(last_photo_object[1].flatten())} #TODO I'm not sure this is used. delete?
+                print(last_photo_object['record']['direction'],rec['direction'])
+                print(last_photo_object['record']['triggertime'],rec['triggertime'])
+                #if (last_photo_object['record']['direction']==rec['direction']) and (last_photo_object['record']['triggertime']>rec['triggertime']-0.1):
+                #    rec['photoaverages'] = {'this':np.mean(photo['img'].flatten()),'last':np.mean(last_photo_object['img'].flatten())} #TODO I'm not sure this is used. delete?
             if photo is not None:
                 photo = photo.astype(np.ubyte)
-            photo_object = [self.index.value,photo,rec]
+            photo_object = {'index':self.index.value,'img':photo,'record':rec}
             
-            if self.test:
-                if photo_object[2]['flash']:
-                    if photo_object[1] is not None:
-                        print("Test Point Added")
-                        y,x = np.unravel_index(photo_object[1][100:-100,100:-100].argmin(), photo_object[1][100:-100,100:-100].shape)
+            if self.test.value:
+                if photo_object['img'] is not None:
+                    print("Test Signal Added")                
+                    photo_object['img'] = photo_object['img'] + np.random.randint(0,2,photo_object['img'].shape)
+                    if photo_object['record']['flash']:
+                        photo_object['img'] = photo_object['img'] + np.random.randint(0,2,photo_object['img'].shape)
+                        
+                        y,x = np.unravel_index((photo_object['img']+np.random.randn(photo_object['img'].shape[0],photo_object['img'].shape[1]))[100:-100,100:-100].argmin(), photo_object['img'][100:-100,100:-100].shape)
                         print(y,x)
-                        photo_object[1][y+100,x+100] = 255 #put it at minimum!
-                    #photo_object[1][100+np.random.randint(photo_object[1].shape[0]-200),100+np.random.randint(photo_object[1].shape[1]-200)]=255 #bright spot!
+                        photo_object['img'][y+100,x+100] = 255 #put it at minimum!
+                    #photo_object['img'][100+np.random.randint(photo_object['img'].shape[0]-200),100+np.random.randint(photo_object['img'].shape['img']-200)]=255 #bright spot!
             
             last_photo_object = photo_object
             self.photo_queue.put(photo_object)
             if self.savephotos:
-                triggertime_string = photo_object[2]['triggertimestring']
+                triggertime_string = photo_object['record']['triggertimestring']
                 filename = 'photo_object_%s_%04i.np' % (triggertime_string,self.index.value)
                 self.message_queue.put("Saved Photo: %s" % filename)
                 pickle.dump(photo_object,open(filename,'wb'))

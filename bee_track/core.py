@@ -151,14 +151,14 @@ def getimage(number):
         global message_queue
         message_queue.put("Photo %d doesn't exist" % number)
         return "Failed"
-    if photoitem[1] is None:
+    if photoitem['img'] is None:
         global message_queue
         message_queue.put("Photo %d failed" % number)
         return "Failed"
-    img = lowresmaximg(photoitem[1],blocksize=10).astype(int)
-    if (len(photoitem)>3) and (photoitem[3] is not None):
+    img = lowresmaximg(photoitem['img'],blocksize=10).astype(int)
+    if (len(photoitem)>3) and (photoitem['track'] is not None):
         newtracklist = []
-        for track in photoitem[3]:
+        for track in photoitem['track']:
             track['patch']=track['patch'].tolist() #makes it jsonable
             track['mean']=float(track['mean'])
             track['searchmax']=float(track['searchmax'])
@@ -168,19 +168,19 @@ def getimage(number):
             newtracklist.append(track)
     else:
         newtracklist = []
-    return jsonify({'index':photoitem[0],'photo':img.tolist(),'record':photoitem[2],'track':newtracklist})
+    return jsonify({'index':photoitem['index'],'photo':img.tolist(),'record':photoitem['record'],'track':newtracklist})
 
 @app.route('/getcontact')
-def getcontact():
+def getcontact(): #TODO this is mostly done by getimage, maybe just return an index?
     global tracking
     try:
         photoitem = tracking.tracking_queue.get_nowait()
-        if photoitem[1] is not None:
-            img = lowresmaximg(photoitem[1],blocksize=10).astype(int).tolist()
+        if photoitem['img'] is not None:
+            img = lowresmaximg(photoitem['img'],blocksize=10).astype(int).tolist()
         else:
             img = None
         newtracklist = []
-        for trackoriginal in photoitem[3]:
+        for trackoriginal in photoitem['track']:
             track = trackoriginal.copy()
             track['patch']=track['patch'].tolist() #makes it jsonable
             track['mean']=float(track['mean'])
@@ -189,7 +189,7 @@ def getcontact():
             track['x']=int(track['x'])
             track['y']=int(track['y']) 
             newtracklist.append(track)       
-        return jsonify({'index':photoitem[0],'photo':img,'record':photoitem[2],'track':newtracklist})
+        return jsonify({'index':photoitem['index'],'photo':img,'record':photoitem['record'],'track':newtracklist})
     except Empty:
         return jsonify(None)
         
@@ -202,16 +202,16 @@ def getimagecentre(number):
         global message_queue
         message_queue.put("Photo %d doesn't exist" % number)
         return "Failed"
-    if photoitem[1] is None:
+    if photoitem['img'] is None:
         global message_queue
         message_queue.put("Photo %d failed" % number)
         return "Failed"
-    middle = [int(photoitem[1].shape[0]/2),int(photoitem[1].shape[1]/2)]
-    img = (photoitem[1][middle[0]-150:middle[0]+150,middle[1]-150:middle[1]+150]).astype(int)
+    middle = [int(photoitem['img'].shape[0]/2),int(photoitem['img'].shape[1]/2)]
+    img = (photoitem['img'][middle[0]-150:middle[0]+150,middle[1]-150:middle[1]+150]).astype(int)
     
 
     
-    return jsonify({'index':photoitem[0],'photo':img.tolist(),'record':photoitem[2]})
+    return jsonify({'index':photoitem['index'],'photo':img.tolist(),'record':photoitem['record']})
 
 
 startup()

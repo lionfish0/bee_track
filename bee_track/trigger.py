@@ -64,7 +64,7 @@ class Trigger(Configurable):
     def worker(self):   
         while (True):
             self.run.wait()
-            self.trigger_camera(False,False)            
+            #self.trigger_camera(False,False)            
             self.trigger_camera(True,False)
             self.trigger_camera(False,True)
             time.sleep(self.t.value-self.triggertime*3-self.preptime*3)

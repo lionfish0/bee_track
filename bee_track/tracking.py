@@ -17,18 +17,18 @@ class Tracking(Configurable):
         while True:
             index,photoitem = self.photo_queue.pop()
             print("Got photo %d" % index)
-            if photoitem[2]['endofset']:
+            if photoitem['record']['endofset']:
                 contact, found = detectcontact(self.photo_queue,index)#,thresholds=[10,3,7])
-                photoitem.append(contact)
+                photoitem['track']=contact
                 self.photo_queue.put(photoitem,index)
                 
 
                 #TODO loop backwards until we reach earlier endofset
                 oldphotoitem = self.photo_queue.read(index-1)
-                oldphotoitem.append(contact)
+                oldphotoitem['track']=contact
                 self.photo_queue.put(oldphotoitem,index-1)
                 
-                triggertime_string = oldphotoitem[2]['triggertimestring']
+                triggertime_string = oldphotoitem['record']['triggertimestring']
                 filename = 'tracking_photo_object_%s_%04i.np' % (triggertime_string,index-1)
                 self.message_queue.put("Saved Tracking Photo: %s" % filename)
                 pickle.dump(oldphotoitem,open(filename,'wb'))
