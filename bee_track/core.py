@@ -139,7 +139,7 @@ def lowresmaximg(img,blocksize=10):
 @app.route('/getimagecount')
 def getimagecount():
     try:
-        return str(camera.photo_queue.len())
+        return str(camera.index.value) #camera.photo_queue.len())
     except Empty:
         return "No items"
 

@@ -30,23 +30,23 @@ class Camera(Configurable):
         print("Camera setup complete")
         last_photo_object = None
         while True:
-            print("waiting for photo")
+            #print("waiting for photo")
             photo = self.get_photo()
-            print("...")
+            #print("...")
             if photo is None:
                 print("Photo failed")
-            print("Waiting for index to appear in record...")
+            #print("Waiting for index to appear in record...")
             rec = None
             for r in self.record:
                 if r['index'] == self.index.value:
                     rec = r
                     break
-            print("found")
-            print(self.photo_queue.len())
-            if (photo is not None) and (last_photo_object is not None) and (last_photo_object['img'] is not None):
-                print(rec['flash'])
-                print(last_photo_object['record']['direction'],rec['direction'])
-                print(last_photo_object['record']['triggertime'],rec['triggertime'])
+            #print("found")
+            #print(self.photo_queue.len())
+            #if (photo is not None) and (last_photo_object is not None) and (last_photo_object['img'] is not None):
+                #print(rec['flash'])
+                #print(last_photo_object['record']['direction'],rec['direction'])
+                #print(last_photo_object['record']['triggertime'],rec['triggertime'])
                 #if (last_photo_object['record']['direction']==rec['direction']) and (last_photo_object['record']['triggertime']>rec['triggertime']-0.1):
                 #    rec['photoaverages'] = {'this':np.mean(photo['img'].flatten()),'last':np.mean(last_photo_object['img'].flatten())} #TODO I'm not sure this is used. delete?
             if photo is not None:
@@ -61,7 +61,7 @@ class Camera(Configurable):
                         photo_object['img'] = photo_object['img'] + np.random.randint(0,2,photo_object['img'].shape)
                         
                         y,x = np.unravel_index((photo_object['img']+np.random.randn(photo_object['img'].shape[0],photo_object['img'].shape[1]))[100:-100,100:-100].argmin(), photo_object['img'][100:-100,100:-100].shape)
-                        print(y,x)
+                        #print(y,x)
                         photo_object['img'][y+100,x+100] = 255 #put it at minimum!
                     #photo_object['img'][100+np.random.randint(photo_object['img'].shape[0]-200),100+np.random.randint(photo_object['img'].shape['img']-200)]=255 #bright spot!
             

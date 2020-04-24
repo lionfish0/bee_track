@@ -98,7 +98,7 @@ setInterval(function(){
             if ((data!=null) && ('track' in data) && (data['track']!=null) && (data['track'].length>0)) {
 
                 confident = false;
-                for (var i=0;i<10;i++){
+                for (var i=0;i<data['track'].length;i++){
                     confident = confident | data['track'][i]['confident']; //true if any of the patches is true
                 }
                 if (confident) {$('#beep2s').get(0).play();}
@@ -191,7 +191,7 @@ function convertJSONtoImageURL(data) {
     if ('track' in data) {
         if ((data['track']!=null) && (data['track'].length>0)) {
             console.log(data['track']);
-            for (var i=0;i<10;i++){
+            for (var i=0;i<data['track'].length;i++){
                 msg([data['track'][i]['searchmax'],data['track'][i]['mean'],data['track'][i]['centremax']])
                 drawcrosshair(imdata,data['track'][i]['x'],data['track'][i]['y'],Math.round(data['track'][i]['searchmax']/10),10,width,height);
             }
