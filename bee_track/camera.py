@@ -5,6 +5,15 @@ from multiprocessing import Value, Queue
 import threading
 import pickle
 
+def ascii_draw(mat):
+    symbols = np.array([s for s in ' .,:-=+*X#@@'])#[::-1]
+    msg = ""
+    mat = (11*mat/(np.max(mat)+1)).astype(int)
+    mat[mat<0] = 0
+    for i in range(0,len(mat),2):
+        msg+=''.join(symbols[mat][i])+"\n"
+    return msg
+
 class Camera(Configurable):
     def setup_camera(self):
         """To implement for specific cameras"""
@@ -49,7 +58,9 @@ class Camera(Configurable):
                 #print(last_photo_object['record']['triggertime'],rec['triggertime'])
                 #if (last_photo_object['record']['direction']==rec['direction']) and (last_photo_object['record']['triggertime']>rec['triggertime']-0.1):
                 #    rec['photoaverages'] = {'this':np.mean(photo['img'].flatten()),'last':np.mean(last_photo_object['img'].flatten())} #TODO I'm not sure this is used. delete?
+
             if photo is not None:
+                #print(ascii_draw(photo[::10,::10]))
                 photo = photo.astype(np.ubyte)
             photo_object = {'index':self.index.value,'img':photo,'record':rec}
             
@@ -74,7 +85,6 @@ class Camera(Configurable):
                 pickle.dump(photo_object,open(filename,'wb'))
                 #np.save(open('photo_%04i.np' % self.index.value,'wb'),photo.astype(np.ubyte))                
             self.index.value = self.index.value + 1
-            
                 
     def close(self):
         """

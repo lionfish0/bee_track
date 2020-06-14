@@ -22,11 +22,11 @@ class Tracking(Configurable):
                 if photoitem['img'] is not None:
                     photoitem['img'] = photoitem['img'].astype(np.float16)
             
-            print("Got photo %d" % index)
-            print('mainloop A',time()-starttime)
+            #print("Got photo %d" % index)
+            #print('mainloop A',time()-starttime)
             starttime = time()
             self.photolist.append(photoitem)
-            print('mainloop B',time()-starttime)
+            #print('mainloop B',time()-starttime)
             starttime = time()
             if len(self.photolist)>10:
                 self.photolist.pop(0)
@@ -34,31 +34,31 @@ class Tracking(Configurable):
                 
                 #contact, found = detectcontact(self.photo_queue,index)#,thresholds=[10,3,7])
                 contact, found = detectcontact(self.photolist,len(self.photolist)-1)#,thresholds=[10,3,7])
-                print('mainloop C',time()-starttime)
+                #print('mainloop C',time()-starttime)
                 starttime = time()
-                print("===================================LENGTH:%d====================" % len(self.photolist))
+                #print("===================================LENGTH:%d====================" % len(self.photolist))
                 photoitem['track']=contact
                 self.photo_queue.put(photoitem,index)
-                print('mainloop D',time()-starttime)
+                #print('mainloop D',time()-starttime)
                 starttime = time()
 
                 #TODO loop backwards until we reach earlier endofset
                 oldphotoitem = self.photo_queue.read(index-1)
                 oldphotoitem['track']=contact
                 self.photo_queue.put(oldphotoitem,index-1)
-                print('mainloop E',time()-starttime)
+                #print('mainloop E',time()-starttime)
                 starttime = time()
                 triggertime_string = oldphotoitem['record']['triggertimestring']
                 filename = 'tracking_photo_object_%s_%04i.np' % (triggertime_string,index-1)
-                print('mainloop F',time()-starttime)
+                #print('mainloop F',time()-starttime)
                 starttime = time()
                 self.message_queue.put("Saved Tracking Photo: %s" % filename)
                 pickle.dump(oldphotoitem,open(filename,'wb'))
-                print('mainloop G',time()-starttime)
+                #print('mainloop G',time()-starttime)
                 starttime = time()
-                print("Contact status")
+                #print("Contact status")
                 #print(contact,found)
                 if contact is not None:
                     self.tracking_queue.put(photoitem)
-            print('mainloop H',time()-starttime)
+            #print('mainloop H',time()-starttime)
             starttime = time()
