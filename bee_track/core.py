@@ -115,6 +115,11 @@ def stop():
     trigger.run.clear()
     return "Collection Stopped"
     
+    
+@app.route('/reboot')
+def reboot():
+    os.system('sudo reboot')
+    
 @app.route('/test/<int:enable>')
 def test(enable):
     global camera
@@ -208,9 +213,6 @@ def getimagecentre(number):
         return "Failed"
     middle = [int(photoitem['img'].shape[0]/2),int(photoitem['img'].shape[1]/2)]
     img = (photoitem['img'][middle[0]-150:middle[0]+150,middle[1]-150:middle[1]+150]).astype(int)
-    
-
-    
     return jsonify({'index':photoitem['index'],'photo':img.tolist(),'record':photoitem['record']})
 
 

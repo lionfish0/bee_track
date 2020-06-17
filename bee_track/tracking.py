@@ -2,10 +2,12 @@ import numpy as np
 #from QueueBuffer import QueueBuffer
 from configurable import Configurable
 #import threading
-from retrodetect import detectcontact
+import retrodetect
 from multiprocessing import Process, Queue
 import pickle
+import os
 from time import time
+
 class Tracking(Configurable):
     def __init__(self,message_queue,photo_queue):
         super().__init__(message_queue)
@@ -33,7 +35,7 @@ class Tracking(Configurable):
             if photoitem['record']['endofset']:
                 
                 #contact, found = detectcontact(self.photo_queue,index)#,thresholds=[10,3,7])
-                contact, found = detectcontact(self.photolist,len(self.photolist)-1)#,thresholds=[10,3,7])
+                contact, found, _ = retrodetect.detectcontact(self.photolist,len(self.photolist)-1)#,thresholds=[10,3,7])
                 #print('mainloop C',time()-starttime)
                 starttime = time()
                 #print("===================================LENGTH:%d====================" % len(self.photolist))

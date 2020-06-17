@@ -94,12 +94,16 @@ setInterval(function(){
         $.ajax({
           url: url,
           success: function(data, status, jqXHR){
+            console.log(data);
             if (data!=null) {$('#beep').get(0).play();}
             if ((data!=null) && ('track' in data) && (data['track']!=null) && (data['track'].length>0)) {
-
+                
                 confident = false;
                 for (var i=0;i<data['track'].length;i++){
-                    confident = confident | data['track'][i]['confident']; //true if any of the patches is true
+                    //confident = confident | data['track'][i]['confident']; //true if any of the patches is true
+                    console.log(data['track'][i]['prediction']);
+                    console.log($('input#detectthreshold').val());
+                    confident = confident | (data['track'][i]['prediction']<$('input#detectthreshold').val()); //true if any of the predictions=0 (which is detected)
                 }
                 if (confident) {$('#beep2s').get(0).play();}
                 image = data['index']-1
@@ -192,8 +196,9 @@ function convertJSONtoImageURL(data) {
         if ((data['track']!=null) && (data['track'].length>0)) {
             console.log(data['track']);
             for (var i=0;i<data['track'].length;i++){
-                msg([data['track'][i]['searchmax'],data['track'][i]['mean'],data['track'][i]['centremax']])
+                msg([data['track'][i]['searchmax'],data['track'][i]['mean'],data['track'][i]['centremax'],data['track'][i]['prediction']])
                 drawcrosshair(imdata,data['track'][i]['x'],data['track'][i]['y'],Math.round(data['track'][i]['searchmax']/10),10,width,height);
+                drawcrosshair(imdata,data['track'][i]['x'],data['track'][i]['y'],Math.round(-data['track'][i]['prediction']*10),10,width,height);                
             }
             
         }
