@@ -14,7 +14,7 @@ from datetime import datetime as dt
 import subprocess
 from queue import Empty
 import retrodetect as rd
-
+from psutil import disk_usage
 from flask_compress import Compress
 app = Flask(__name__)
 Compress(app)
@@ -67,6 +67,10 @@ def get(component,field):
     comp.config_queue.put(['get',field])
     return "..."    
 
+@app.route('/getdiskfree')
+def getdiskfree():
+    return str(disk_usage('/').free)
+    
 @app.route('/getmessage')
 def getmessage():
     msgs = ""
