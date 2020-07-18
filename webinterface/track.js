@@ -58,6 +58,17 @@ $('button#imagedown').click(function(){image=image-1;})
 $('button#imageupx10').click(function(){image=image+10;})
 $('button#imagedownx10').click(function(){image=image-10;})
 
+
+setInterval(function(){ 
+    url = "http://"+$('input#url').val()+"/getdiskfree";
+    $.ajax({
+      url: url,
+      success: function(data, status, jqXHR){
+        msg("Disk space: "+Math.round(parseInt(data)/1000000)+" Mb");
+      }});
+}, 60000);
+
+
 setInterval(function(){ 
 
     url = "http://"+$('input#url').val()+"/getimagecount";
