@@ -20,10 +20,24 @@ class Aravis_Camera(Camera):
         self.aravis_camera = Aravis.Camera.new (None)
         self.aravis_camera.set_region(0,0,2048,1536) #2064x1544        
         self.aravis_camera.gv_set_packet_size(8000)
-        self.aravis_camera.set_exposure_time(15) #1000000)#15 us
+        
+        
+        ##########NEW CODE FOR SHORT EXPOSURE##########
+        aravis_device = self.aravis_camera.get_device();
+        aravis_device.set_string_feature_value("ExposureTimeMode","UltraShort")   
+        self.aravis_camera.set_exposure_time(7) #15 us
         self.aravis_camera.set_gain(0)
         self.aravis_camera.set_pixel_format (Aravis.PIXEL_FORMAT_MONO_8)
-        self.aravis_camera.set_trigger("Line1")        
+        self.aravis_camera.set_trigger("Line1")     
+        aravis_device.set_float_feature_value("LineDebouncerTime",5.0)
+        
+        ##########ORIGINAL CODE########################
+        #self.aravis_camera.set_exposure_time(15) #1000000)#15 us
+        #self.aravis_camera.set_gain(0)
+        #self.aravis_camera.set_pixel_format (Aravis.PIXEL_FORMAT_MONO_8)
+        #self.aravis_camera.set_trigger("Line1")  
+        
+              
         self.payload = self.aravis_camera.get_payload()
         self.stream = self.aravis_camera.create_stream(None, None)
         if self.stream is None:

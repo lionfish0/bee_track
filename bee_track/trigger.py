@@ -48,7 +48,7 @@ class Trigger(Configurable):
             for pin in self.flash_select_pins:
                 GPIO.output(pin, False)
         time.sleep(self.preptime)
-        triggertime = time.time()
+        triggertime = time.time() #TODO Why are these two different?
         triggertimestring = datetime.datetime.now() #need to convert to string later
         GPIO.output(self.trigger_pin,True)
         time.sleep(self.triggertime)

@@ -50,22 +50,16 @@ class Camera(Configurable):
                 if r['index'] == self.index.value:
                     rec = r
                     break
-            #print("found")
-            #print(self.photo_queue.len())
-            #if (photo is not None) and (last_photo_object is not None) and (last_photo_object['img'] is not None):
-                #print(rec['flash'])
-                #print(last_photo_object['record']['direction'],rec['direction'])
-                #print(last_photo_object['record']['triggertime'],rec['triggertime'])
-                #if (last_photo_object['record']['direction']==rec['direction']) and (last_photo_object['record']['triggertime']>rec['triggertime']-0.1):
-                #    rec['photoaverages'] = {'this':np.mean(photo['img'].flatten()),'last':np.mean(last_photo_object['img'].flatten())} #TODO I'm not sure this is used. delete?
-
+            if rec is None:
+                print("WARNING: Failed to find associated photo record")
+            
             if photo is not None:
                 #print(ascii_draw(photo[::10,::10]))
                 photo = photo.astype(np.ubyte)
             photo_object = {'index':self.index.value,'img':photo,'record':rec}
             
             if self.test.value:
-                if photo_object['img'] is not None:
+                if (photo_object['img'] is not None) and (photo_object['record'] is not None):
                     print("Test Signal Added")                
                     photo_object['img'] = photo_object['img'] + np.random.randint(0,2,photo_object['img'].shape)
                     if photo_object['record']['flash']:
@@ -79,10 +73,13 @@ class Camera(Configurable):
             last_photo_object = photo_object
             self.photo_queue.put(photo_object)
             if self.savephotos:
-                triggertime_string = photo_object['record']['triggertimestring']
-                filename = 'photo_object_%s_%04i.np' % (triggertime_string,self.index.value)
-                self.message_queue.put("Saved Photo: %s" % filename)
-                pickle.dump(photo_object,open(filename,'wb'))
+                if rec is not None:
+                    triggertime_string = photo_object['record']['triggertimestring']
+                    filename = 'photo_object_%s_%04i.np' % (triggertime_string,self.index.value)
+                    self.message_queue.put("Saved Photo: %s" % filename)
+                    pickle.dump(photo_object,open(filename,'wb'))
+                else:
+                    self.message_queue.put("FAILED TO FIND ASSOCIATED RECORD! NOT SAVED PHOTO")                    
                 #np.save(open('photo_%04i.np' % self.index.value,'wb'),photo.astype(np.ubyte))                
             self.index.value = self.index.value + 1
                 

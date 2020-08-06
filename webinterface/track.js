@@ -125,7 +125,7 @@ setInterval(function(){
           
           });
     }
-}, 1000);
+}, 500);
 
 
 
@@ -144,25 +144,37 @@ setInterval(function(){
       });
 }, 1000);
 
-function drawpixel(imdata,x,y,width,height) {
+function drawpixel(imdata,x,y,width,height,r,g,b) {
     pos = 4*(x+y*width)
-    imdata[pos] = 255
-    imdata[pos+1] = 255
-    imdata[pos+2] = 0
+    imdata[pos] = r
+    imdata[pos+1] = g
+    imdata[pos+2] = b
 }
 
-function drawcrosshair(imdata,x,y,size,imscale,width,height) {
-    size = size + 3; //corrects for removed pixels around centre of reticule
+function drawcircle(imdata,x,y,size,imscale,width,height,r,g,b) {
+    if (size<0) { size=0; }
+
+    x=Math.round(x/imscale)
+    //y=height-Math.round(y/imscale)
+    y=Math.round(y/imscale)
+    for (angle=0;angle<2*3.14159;angle+=0.1) {
+        drawpixel(imdata,Math.round(x+Math.cos(angle)*size),Math.round(y+Math.sin(angle)*size),width,height,r,g,b)
+    }
+}
+
+function drawcrosshair(imdata,x,y,size,imscale,width,height,r,g,b) {
+    if (size<0) { size=0; }
+    size = size + 3; //corrects for removed pixels around centre of reticule, and a bit more
     x=Math.round(x/imscale)
     //y=height-Math.round(y/imscale)
     y=Math.round(y/imscale)
     for (xstep=x-size;xstep<x+size;xstep+=1) {
         if (Math.abs(xstep-x)>3) {
-            drawpixel(imdata,xstep,y,width,height) }
+            drawpixel(imdata,xstep,y,width,height,r,g,b) }
     }
     for (ystep=y-size;ystep<y+size;ystep+=1) {
         if (Math.abs(ystep-y)>3) {
-            drawpixel(imdata,x,ystep,width,height) }
+            drawpixel(imdata,x,ystep,width,height,r,g,b) }
     }
 
 }
@@ -203,13 +215,19 @@ function convertJSONtoImageURL(data) {
         }
     }
 
+    blocksize = 5;
     if ('track' in data) {
         if ((data['track']!=null) && (data['track'].length>0)) {
             console.log(data['track']);
             for (var i=0;i<data['track'].length;i++){
                 msg([data['track'][i]['searchmax'],data['track'][i]['mean'],data['track'][i]['centremax'],data['track'][i]['prediction']])
-                drawcrosshair(imdata,data['track'][i]['x'],data['track'][i]['y'],Math.round(data['track'][i]['searchmax']/10),10,width,height);
-                drawcrosshair(imdata,data['track'][i]['x'],data['track'][i]['y'],Math.round(-data['track'][i]['prediction']*10),10,width,height);                
+                drawcrosshair(imdata,data['track'][i]['x'],data['track'][i]['y'],Math.round(data['track'][i]['searchmax']/10),blocksize,width,height,0,0,255);
+                drawcrosshair(imdata,data['track'][i]['x'],data['track'][i]['y'],Math.round(-data['track'][i]['prediction']*10),blocksize,width,height,255,255,0);
+                console.log(data['track'][i]['prediction'])
+                drawcircle(imdata,data['track'][i]['x'],data['track'][i]['y'],5,blocksize,width,height,0,0,255);
+                if (data['track'][i]['prediction']<$('input#detectthreshold').val()) {
+                    drawcircle(imdata,data['track'][i]['x'],data['track'][i]['y'],15,blocksize,width,height,255,255,0);
+                }
             }
             
         }

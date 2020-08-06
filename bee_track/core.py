@@ -164,11 +164,12 @@ def getimage(number):
         global message_queue
         message_queue.put("Photo %d failed" % number)
         return "Failed"
-    img = lowresmaximg(photoitem['img'],blocksize=10).astype(int)
+    img = lowresmaximg(photoitem['img'],blocksize=5).astype(int)
     if (len(photoitem)>3) and (photoitem['track'] is not None):
         newtracklist = []
         for track in photoitem['track']:
             track['patch']=track['patch'].tolist() #makes it jsonable
+            track['searchpatch']=track['searchpatch'].tolist() #makes it jsonable
             track['mean']=float(track['mean'])
             track['searchmax']=float(track['searchmax'])
             track['centremax']=float(track['centremax'])
@@ -185,13 +186,14 @@ def getcontact(): #TODO this is mostly done by getimage, maybe just return an in
     try:
         photoitem = tracking.tracking_queue.get_nowait()
         if photoitem['img'] is not None:
-            img = lowresmaximg(photoitem['img'],blocksize=10).astype(int).tolist()
+            img = lowresmaximg(photoitem['img'],blocksize=5).astype(int).tolist()
         else:
             img = None
         newtracklist = []
         for trackoriginal in photoitem['track']:
             track = trackoriginal.copy()
             track['patch']=track['patch'].tolist() #makes it jsonable
+            track['searchpatch']=track['searchpatch'].tolist() #makes it jsonable
             track['mean']=float(track['mean'])
             track['searchmax']=float(track['searchmax'])
             track['centremax']=float(track['centremax'])            
