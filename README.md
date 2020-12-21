@@ -32,22 +32,40 @@ Download the aravis library:
 Or donwload earlier version from
 http://ftp.gnome.org/pub/GNOME/sources/aravis/0.6/
 
-then if you need the viewer:
+then if you need the viewer (although I did find I had to split these installs).
 
     sudo apt install libgtk-3-dev libnotify-dev libgstreamer1.0 libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-bad
 
-introspection:
-
-    cd aravis
-    ./configure --enable-viewer --enable-gst-plugin --enable-introspection=yes
-    make
-    make install
-
 other stuff...
 
-    sudo apt-get install gnome-common intltool valac libglib2.0-dev gobject-introspection libgirepository1.0-dev libgtk-3-dev libclutter-gtk-1.0-dev libgnome-desktop-3-dev libcanberra-dev libgdata-dev libdbus-glib-1-dev libgstreamer1.0-dev libupower-glib-dev libxml2-dev
+    sudo apt-get install gnome-common intltool valac libglib2.0-dev gobject-introspection libgirepository1.0-dev libgtk-3-dev libgnome-desktop-3-dev libcanberra-dev libgdata-dev libdbus-glib-1-dev libgstreamer1.0-dev libupower-glib-dev libxml2-dev
+   
+ignore...
 
-check if 
+    #sudo apt-get install gnome-common intltool valac libglib2.0-dev gobject-introspection libgirepository1.0-dev libgtk-3-dev libclutter-gtk-1.0-dev libgnome-desktop-3-dev libcanberra-dev libgdata-dev libdbus-glib-1-dev libgstreamer1.0-dev libupower-glib-dev libxml2-dev
+
+for a while now aravis has used meson for building...
+
+    sudo pip3 install ninja meson
+    
+    cd aravis
+    #this maybe needs running later...
+    meson configure -Dviewer=enabled -Dintrospection=enabled -Dgst-plugin=enabled
+    meson build
+    cd build
+    meson configure -Dviewer=enabled -Dintrospection=enabled -Dgst-plugin=enabled
+    ninja
+    sudo ninja install
+    
+old...
+
+    #cd aravis
+    #./configure --enable-viewer --enable-gst-plugin --enable-introspection=yes
+    #make
+    #make install
+
+
+old... check if 
 
     aravis-0.6.4/viewer $ ./arv-viewer 
 
