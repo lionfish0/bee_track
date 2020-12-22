@@ -49,13 +49,13 @@ for a while now aravis has used meson for building...
     sudo pip3 install ninja meson
     
     cd aravis
-    #this maybe needs running later...
-    meson configure -Dviewer=enabled -Dintrospection=enabled -Dgst-plugin=enabled
     meson build
     cd build
     meson configure -Dviewer=enabled -Dintrospection=enabled -Dgst-plugin=enabled
     ninja
     sudo ninja install
+    cd .. #to aravis
+    sudo ldconfig
     
 old...
 
