@@ -73,7 +73,11 @@ Also:
     pip3 install scipy
     git clone https://github.com/lionfish0/retrodetect.git
     cd retrodetect
-    pip install -e .
+    pip3 install -e .
     git clone https://github.com/lionfish0/QueueBuffer.git
     cd QueueBuffer
-    pip install -e .
+    pip3 install -e .
+    pip3 install libsvm
+    pip3 install -U flask-cors
+    pip3 install mem_top
+    pip3 install flask_compress
