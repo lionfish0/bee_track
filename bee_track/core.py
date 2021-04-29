@@ -15,6 +15,7 @@ import subprocess
 from queue import Empty
 import retrodetect as rd
 from psutil import disk_usage
+import multiprocessing
 from flask_compress import Compress
 app = Flask(__name__)
 Compress(app)
@@ -87,21 +88,26 @@ def getmessage():
 def startup():
     global message_queue
     global trigger
+    global camera
+    global tracking
+    global cam_trigger
+    
     if trigger is not None:
         return "startup already complete"
     message_queue = Queue()
-    trigger = Trigger(message_queue)
+    
+    cam_trigger = multiprocessing.Event()
+
+    trigger = Trigger(message_queue,cam_trigger)
     t = Process(target=trigger.worker)
     t.start()
-    #trigger.run.set()
-
-    global camera
-    camera = Camera(message_queue,trigger.record)
-
+        
+    camera = Camera(message_queue,trigger.record,cam_trigger)
     t = Process(target=camera.worker)
     t.start()
+   
     
-    global tracking
+    
     tracking = Tracking(message_queue,camera.photo_queue)
     t = Process(target=tracking.worker)
     t.start()
@@ -109,24 +115,28 @@ def startup():
     
 @app.route('/start')
 def start():
-    global trigger
+    #global trigger
     trigger.run.set()
     return "Collection Started"
     
 @app.route('/stop')
 def stop():
-    global trigger
+    #global trigger
     trigger.run.clear()
     return "Collection Stopped"
-    
-    
+ 
+@app.route('/setlabel/<string:label>')
+def setlabel(label):
+    camera.label.value = bytes(label[1:],'utf-8')
+    return "Set to %s" % label[1:]
+       
 @app.route('/reboot')
 def reboot():
     os.system('sudo reboot')
     
 @app.route('/test/<int:enable>')
 def test(enable):
-    global camera
+    #global camera
     camera.test.value = bool(enable)
     if camera.test.value: return "Testing Enabled"
     else: return "Testing Disabled"
@@ -154,14 +164,13 @@ def getimagecount():
 
 @app.route('/getimage/<int:number>')
 def getimage(number):
-    global camera
+    #global camera
+    #global message_queue
     photoitem = camera.photo_queue.read(number)
     if photoitem is None:
-        global message_queue
         message_queue.put("Photo %d doesn't exist" % number)
         return "Failed"
     if photoitem['img'] is None:
-        global message_queue
         message_queue.put("Photo %d failed" % number)
         return "Failed"
     img = lowresmaximg(photoitem['img'],blocksize=5).astype(int)
@@ -182,7 +191,7 @@ def getimage(number):
 
 @app.route('/getcontact')
 def getcontact(): #TODO this is mostly done by getimage, maybe just return an index?
-    global tracking
+    #global tracking
     try:
         photoitem = tracking.tracking_queue.get_nowait()
         if photoitem['img'] is not None:
@@ -207,14 +216,14 @@ def getcontact(): #TODO this is mostly done by getimage, maybe just return an in
 
 @app.route('/getimagecentre/<int:number>')
 def getimagecentre(number):
-    global camera
+    #global camera
     photoitem = camera.photo_queue.read(number)
     if photoitem is None:
-        global message_queue
+        #global message_queue
         message_queue.put("Photo %d doesn't exist" % number)
         return "Failed"
     if photoitem['img'] is None:
-        global message_queue
+        #global message_queue
         message_queue.put("Photo %d failed" % number)
         return "Failed"
     middle = [int(photoitem['img'].shape[0]/2),int(photoitem['img'].shape[1]/2)]

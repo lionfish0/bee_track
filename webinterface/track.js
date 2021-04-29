@@ -240,6 +240,17 @@ function convertJSONtoImageURL(data) {
 
 $('button.refreshimages').click(function(){refreshimages();});
 
+$('input#label').bind('input',function() {
+url = "http://"+$('input#url').val()+"/setlabel/a"+$('input#label').val(); //have to add an extra character so an empty string can be sent!
+$.ajax({
+      url: url,
+      success: function(data, status, jqXHR){
+        msg('Set');
+      },
+      error: function(jqXHR, status, errorThrown){msg('Set Error');}
+    });
+});
+
 $('input#maxval').bind('input',function() {refreshimages();});
 function refreshimages(){
     //$('audio#beep')[0].play();

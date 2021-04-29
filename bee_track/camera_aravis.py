@@ -21,15 +21,29 @@ class Aravis_Camera(Camera):
         self.aravis_camera.set_region(0,0,2048,1536) #2064x1544        
         self.aravis_camera.gv_set_packet_size(8000)
         
-        
-        ##########NEW CODE FOR SHORT EXPOSURE##########
+        ########## NEW CODE FOR 3D PRINTED BEE TRACKER WITH COLOUR CAM#######
         aravis_device = self.aravis_camera.get_device();
-        aravis_device.set_string_feature_value("ExposureTimeMode","UltraShort")   
-        self.aravis_camera.set_exposure_time(7) #15 us
-        self.aravis_camera.set_gain(0)
-        self.aravis_camera.set_pixel_format (Aravis.PIXEL_FORMAT_MONO_8)
-        self.aravis_camera.set_trigger("Line1")     
-        aravis_device.set_float_feature_value("LineDebouncerTime",5.0)
+        aravis_device.set_string_feature_value("PixelFormat", "RGB8Packed")
+        aravis_device.set_string_feature_value("TriggerMode", "On")
+        aravis_device.set_string_feature_value("TriggerSource", "Software")
+        aravis_device.set_string_feature_value("LineSelector", "Line2")
+        aravis_device.set_boolean_feature_value("StrobeEnable", True)
+        aravis_device.set_string_feature_value("LineMode", "Strobe")
+        aravis_device.set_integer_feature_value("StrobeLineDelay", 100)
+        aravis_device.set_integer_feature_value("StrobeLinePreDelay", 200)
+        aravis_device.set_string_feature_value("LineSource", "ExposureStartActive")
+        aravis_device.set_boolean_feature_value("LineInverter",True)
+        #aravis_device.set_string_feature_value("ExposureTimeMode","UltraShort")   
+        self.aravis_camera.set_exposure_time(40)
+        self.aravis_camera.set_gain(1)
+        ##########NEW CODE FOR SHORT EXPOSURE##########
+        #aravis_device = self.aravis_camera.get_device();
+        #aravis_device.set_string_feature_value("ExposureTimeMode","UltraShort")   
+        #self.aravis_camera.set_exposure_time(7) #15 us
+        #self.aravis_camera.set_gain(0)
+        #self.aravis_camera.set_pixel_format (Aravis.PIXEL_FORMAT_MONO_8)
+        #self.aravis_camera.set_trigger("Line1")     
+        #aravis_device.set_float_feature_value("LineDebouncerTime",5.0)
         
         ##########ORIGINAL CODE########################
         #self.aravis_camera.set_exposure_time(15) #1000000)#15 us
@@ -46,14 +60,17 @@ class Aravis_Camera(Camera):
         self.aravis_camera.start_acquisition()
         for i in range(0,16):
             self.stream.push_buffer(Aravis.Buffer.new_allocate(self.payload))
-        #print("------------")
-        #print(self.aravis_camera.get_gain_auto())
-        #print(self.aravis_camera.get_gain())        
-        #print(self.aravis_camera.get_exposure_time_auto())        
-        #print(self.aravis_camera.get_exposure_time())
         print("Ready")
-        
     
+
+    
+    def camera_trigger(self):
+        while True:
+            print("WAITING FOR TRIGGER")
+            self.cam_trigger.wait()
+            print("Software Trigger...")
+            self.aravis_camera.software_trigger()
+            self.cam_trigger.clear()
 
     def get_photo(self):
         print(self.stream.get_n_buffers())
@@ -77,7 +94,8 @@ class Aravis_Camera(Camera):
         print("buffer ok")
         raw = np.frombuffer(buffer.get_data(),dtype=np.uint8).astype(float)
         self.stream.push_buffer(buffer)
-        return np.reshape(raw,[1536,2048])
+        return np.mean(np.reshape(raw,[1536,2048,3]),2) #turn to greyscale!
+        #return np.reshape(raw,[1536,2048])
         
     def close(self):
         """

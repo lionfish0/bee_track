@@ -3,6 +3,7 @@ from QueueBuffer import QueueBuffer
 from configurable import Configurable
 from multiprocessing import Value, Queue
 import threading
+import multiprocessing
 import pickle
 
 def ascii_draw(mat):
@@ -19,16 +20,29 @@ class Camera(Configurable):
         """To implement for specific cameras"""
         pass
         
-    def __init__(self,message_queue,record):
+    def __init__(self,message_queue,record,cam_trigger):
         """
         Pass record list from trigger
         """
         super().__init__(message_queue)
         self.photo_queue = QueueBuffer(10) 
-        self.record = record  
+        self.record = record
+        self.label = multiprocessing.Array('c',100)
         self.index = Value('i',0)
         self.savephotos = True
         self.test = Value('b',False)
+        self.cam_trigger = cam_trigger
+        
+    def camera_trigger(self):
+        """implement whatever triggers the camera
+        e.g. self.cam_trigger.wait()
+        """
+        pass
+        
+    #def trigger(self):
+    #    print("Triggering Camera")
+    #    self.cam_trigger.set()
+        
     def get_photo(self):
         """Blocking, returns a photo numpy array"""
         pass
@@ -36,10 +50,13 @@ class Camera(Configurable):
     def worker(self):
         print("Camera worker started")
         self.setup_camera()
+        t = threading.Thread(target=self.camera_trigger)
+        t.start()
         print("Camera setup complete")
         last_photo_object = None
         while True:
             #print("waiting for photo")
+            
             photo = self.get_photo()
             #print("...")
             if photo is None:
@@ -75,7 +92,7 @@ class Camera(Configurable):
             if self.savephotos:
                 if rec is not None:
                     triggertime_string = photo_object['record']['triggertimestring']
-                    filename = 'photo_object_%s_%04i.np' % (triggertime_string,self.index.value)
+                    filename = 'photo_object_%s_%s_%04i.np' % (triggertime_string,self.label.value.decode('utf-8'),self.index.value)
                     self.message_queue.put("Saved Photo: %s" % filename)
                     pickle.dump(photo_object,open(filename,'wb'))
                 else:

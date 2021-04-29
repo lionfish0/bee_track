@@ -1,5 +1,5 @@
-export GI_TYPELIB_PATH=$GI_TYPELIB_PATH:/home/pi/aravis-0.6.3/src
-export LD_LIBRARY_PATH=/home/pi/aravis-0.6.3/src/.libs
+export GI_TYPELIB_PATH=$GI_TYPELIB_PATH:/home/pi/aravis/build/src
+export LD_LIBRARY_PATH=/home/pi/aravis/build/src
 cd /home/pi/bee_track/webinterface
 python3 -m http.server &
 
