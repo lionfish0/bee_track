@@ -40,10 +40,6 @@ other stuff...
 
     sudo apt-get install gnome-common intltool valac libglib2.0-dev gobject-introspection libgirepository1.0-dev libgtk-3-dev libgnome-desktop-3-dev libcanberra-dev libgdata-dev libdbus-glib-1-dev libgstreamer1.0-dev libupower-glib-dev libxml2-dev
    
-ignore...
-
-    #sudo apt-get install gnome-common intltool valac libglib2.0-dev gobject-introspection libgirepository1.0-dev libgtk-3-dev libclutter-gtk-1.0-dev libgnome-desktop-3-dev libcanberra-dev libgdata-dev libdbus-glib-1-dev libgstreamer1.0-dev libupower-glib-dev libxml2-dev
-
 for a while now aravis has used meson for building...
 
     sudo pip3 install ninja meson
@@ -56,21 +52,7 @@ for a while now aravis has used meson for building...
     sudo ninja install
     cd .. #to aravis
     sudo ldconfig
-    
-old...
-
-    #cd aravis
-    #./configure --enable-viewer --enable-gst-plugin --enable-introspection=yes
-    #make
-    #make install
-
-
-old... check if 
-
-    aravis-0.6.4/viewer $ ./arv-viewer 
-
-works
-
+   
 (maybe see https://github.com/sightmachine/SimpleCV/wiki/Aravis-(Basler)-GigE-Camera-Install-Guide)
 
 Download this tool
@@ -81,3 +63,21 @@ In /etc/rc.local add line:
 
     su - pi -c /home/pi/bee_track/startup &
 
+Also to make numpy work:
+
+    sudo apt install libatlas3-base
+    sudo pip3 install numpy
+    
+Also:
+
+    pip3 install scipy
+    git clone https://github.com/lionfish0/retrodetect.git
+    cd retrodetect
+    pip3 install -e .
+    git clone https://github.com/lionfish0/QueueBuffer.git
+    cd QueueBuffer
+    pip3 install -e .
+    pip3 install libsvm
+    pip3 install -U flask-cors
+    pip3 install mem_top
+    pip3 install flask_compress
