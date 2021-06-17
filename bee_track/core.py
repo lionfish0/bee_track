@@ -16,6 +16,7 @@ from queue import Empty
 import retrodetect as rd
 from psutil import disk_usage
 import multiprocessing
+from battery import read_batteries
 from flask_compress import Compress
 app = Flask(__name__)
 Compress(app)
@@ -71,6 +72,15 @@ def get(component,field):
 @app.route('/getdiskfree')
 def getdiskfree():
     return str(disk_usage('/').free)
+
+@app.route('/getbattery')
+def getbattery():
+    batstr = str(read_batteries())
+    with open("battery_status.txt", "a") as battery:
+        battery.write(batstr)
+    return batstr
+    
+
     
 @app.route('/getmessage')
 def getmessage():

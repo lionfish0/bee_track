@@ -68,6 +68,16 @@ setInterval(function(){
       }});
 }, 60000);
 
+setInterval(function(){ 
+    url = "http://"+$('input#url').val()+"/getbattery";
+    $.ajax({
+      url: url,
+      success: function(data, status, jqXHR){
+        msg("!!");
+        msg("Get Battery: "+data)
+      }});
+}, 60000);
+
 
 setInterval(function(){ 
 
