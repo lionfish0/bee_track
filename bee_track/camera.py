@@ -70,10 +70,13 @@ class Camera(Configurable):
             if rec is None:
                 print("WARNING: Failed to find associated photo record")
             
+            colorphoto = photo #make a copy of this variable and make the photo greyscale
             if photo is not None:
                 #print(ascii_draw(photo[::10,::10]))
+                photo = np.mean(photo,2)
                 photo = photo.astype(np.ubyte)
-            photo_object = {'index':self.index.value,'img':photo,'record':rec}
+                colorphoto = colorphoto.astype(np.ubyte)
+            photo_object = {'index':self.index.value,'img':photo,'colorimg':colorphoto,'record':rec}
             
             if self.test.value:
                 if (photo_object['img'] is not None) and (photo_object['record'] is not None):

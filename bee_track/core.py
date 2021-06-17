@@ -174,7 +174,7 @@ def getimage(number):
         message_queue.put("Photo %d failed" % number)
         return "Failed"
     img = lowresmaximg(photoitem['img'],blocksize=5).astype(int)
-    if (len(photoitem)>3) and (photoitem['track'] is not None):
+    if (len(photoitem)>3) and ('track' in photoitem) and (photoitem['track'] is not None):
         newtracklist = []
         for track in photoitem['track']:
             track['patch']=track['patch'].tolist() #makes it jsonable

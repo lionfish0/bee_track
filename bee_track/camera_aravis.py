@@ -34,7 +34,7 @@ class Aravis_Camera(Camera):
         aravis_device.set_string_feature_value("LineSource", "ExposureStartActive")
         aravis_device.set_boolean_feature_value("LineInverter",True)
         #aravis_device.set_string_feature_value("ExposureTimeMode","UltraShort")   
-        self.aravis_camera.set_exposure_time(40)
+        self.aravis_camera.set_exposure_time(140) #40
         self.aravis_camera.set_gain(1)
         ##########NEW CODE FOR SHORT EXPOSURE##########
         #aravis_device = self.aravis_camera.get_device();
@@ -94,7 +94,8 @@ class Aravis_Camera(Camera):
         print("buffer ok")
         raw = np.frombuffer(buffer.get_data(),dtype=np.uint8).astype(float)
         self.stream.push_buffer(buffer)
-        return np.mean(np.reshape(raw,[1536,2048,3]),2) #turn to greyscale!
+        #return np.mean(np.reshape(raw,[1536,2048,3]),2) #turn to greyscale!
+        return np.reshape(raw,[1536,2048,3])
         #return np.reshape(raw,[1536,2048])
         
     def close(self):
