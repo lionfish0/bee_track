@@ -75,7 +75,7 @@ def getdiskfree():
 
 @app.route('/getbattery')
 def getbattery():
-    batstr = str(read_batteries())
+    batstr = read_batteries()
     with open("battery_status.txt", "a") as battery:
         battery.write(batstr)
     return batstr
@@ -168,7 +168,8 @@ def lowresmaximg(img,blocksize=10):
 @app.route('/getimagecount')
 def getimagecount():
     try:
-        return str(camera.index.value) #camera.photo_queue.len())
+        #return str(camera.index.value) #camera.photo_queue.len())
+        return str(camera.photo_queue.len())
     except Empty:
         return "No items"
 

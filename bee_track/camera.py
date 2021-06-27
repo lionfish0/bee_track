@@ -32,6 +32,7 @@ class Camera(Configurable):
         self.savephotos = True
         self.test = Value('b',False)
         self.cam_trigger = cam_trigger
+        self.colour_camera = False
         
     def camera_trigger(self):
         """implement whatever triggers the camera
@@ -70,13 +71,17 @@ class Camera(Configurable):
             if rec is None:
                 print("WARNING: Failed to find associated photo record")
             
-            colorphoto = photo #make a copy of this variable and make the photo greyscale
-            if photo is not None:
-                #print(ascii_draw(photo[::10,::10]))
-                photo = np.mean(photo,2)
-                photo = photo.astype(np.ubyte)
-                colorphoto = colorphoto.astype(np.ubyte)
-            photo_object = {'index':self.index.value,'img':photo,'colorimg':colorphoto,'record':rec}
+            
+            photo_object = {'index':self.index.value,'record':rec}
+            
+            if self.colour_camera:
+                colorphoto = photo
+                if photo is not None:
+                    photo = np.mean(photo,2)
+                    photo = photo.astype(np.ubyte)
+                    colorphoto = colorphoto.astype(np.ubyte)
+                photo_object['colorimg'] = colorphoto                    
+            photo_object['img'] = photo
             
             if self.test.value:
                 if (photo_object['img'] is not None) and (photo_object['record'] is not None):

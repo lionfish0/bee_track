@@ -20,12 +20,26 @@ class Aravis_Camera(Camera):
         self.aravis_camera = Aravis.Camera.new (None)
         self.aravis_camera.set_region(0,0,2048,1536) #2064x1544        
         self.aravis_camera.gv_set_packet_size(8000)
-        
-        ########## NEW CODE FOR 3D PRINTED BEE TRACKER WITH COLOUR CAM#######
         aravis_device = self.aravis_camera.get_device();
-        aravis_device.set_string_feature_value("PixelFormat", "RGB8Packed")
+
+        if self.aravis_camera.get_pixel_format_as_string()=='Mono8':
+            self.colour_camera = False
+            pass
+        else:
+            self.colour_camera = True
+            aravis_device.set_string_feature_value("PixelFormat", "RGB8Packed")
+            
+        #Triggering the camera:
+        #  Software trigger...    
+        #aravis_device.set_string_feature_value("TriggerMode", "On")
+        #aravis_device.set_string_feature_value("TriggerSource", "Software")
+        #  Hardware trigger...
+        ##print(aravis_device.get_available_trigger_sources())
+        ##self.aravis_camera.set_trigger("Line1")
         aravis_device.set_string_feature_value("TriggerMode", "On")
-        aravis_device.set_string_feature_value("TriggerSource", "Software")
+        aravis_device.set_string_feature_value("TriggerSource", "Line0")
+        
+        #Triggering the flash...
         aravis_device.set_string_feature_value("LineSelector", "Line2")
         aravis_device.set_boolean_feature_value("StrobeEnable", True)
         aravis_device.set_string_feature_value("LineMode", "Strobe")
@@ -94,9 +108,10 @@ class Aravis_Camera(Camera):
         print("buffer ok")
         raw = np.frombuffer(buffer.get_data(),dtype=np.uint8).astype(float)
         self.stream.push_buffer(buffer)
-        #return np.mean(np.reshape(raw,[1536,2048,3]),2) #turn to greyscale!
-        return np.reshape(raw,[1536,2048,3])
-        #return np.reshape(raw,[1536,2048])
+        if self.colour_camera:
+            return np.reshape(raw,[1536,2048,3])
+        else:
+            return np.reshape(raw,[1536,2048])
         
     def close(self):
         """

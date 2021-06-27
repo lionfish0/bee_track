@@ -75,6 +75,8 @@ setInterval(function(){
       success: function(data, status, jqXHR){
         msg("!!");
         msg("Get Battery: "+data)
+        $('#battery').html(data)
+        if (data.substring(0,3)=='low') {$('#lowbattery').get(0).play();}
       }});
 }, 60000);
 
