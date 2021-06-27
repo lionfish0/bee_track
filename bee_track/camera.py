@@ -20,7 +20,7 @@ class Camera(Configurable):
         """To implement for specific cameras"""
         pass
         
-    def __init__(self,message_queue,record,cam_trigger):
+    def __init__(self,message_queue,record,cam_trigger,cam_id=None):
         """
         Pass record list from trigger
         """
@@ -33,6 +33,7 @@ class Camera(Configurable):
         self.test = Value('b',False)
         self.cam_trigger = cam_trigger
         self.colour_camera = False
+        self.cam_id = cam_id
         
     def camera_trigger(self):
         """implement whatever triggers the camera
@@ -97,10 +98,14 @@ class Camera(Configurable):
             
             last_photo_object = photo_object
             self.photo_queue.put(photo_object)
+            if self.cam_id is not None:
+                camidstr = self.cam_id[-11:]
+            else:
+                camidstr = ''
             if self.savephotos:
                 if rec is not None:
                     triggertime_string = photo_object['record']['triggertimestring']
-                    filename = 'photo_object_%s_%s_%04i.np' % (triggertime_string,self.label.value.decode('utf-8'),self.index.value)
+                    filename = 'photo_object_%s_%s_%s_%04i.np' % (camidstr,triggertime_string,self.label.value.decode('utf-8'),self.index.value)
                     self.message_queue.put("Saved Photo: %s" % filename)
                     pickle.dump(photo_object,open(filename,'wb'))
                 else:

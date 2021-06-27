@@ -12,14 +12,27 @@ import os
 
 from camera import Camera
 
+def getcameraids():
+    Aravis.update_device_list()
+    n_cams = Aravis.get_n_devices()
+    print("%d cameras found" % n_cams)
+    ids = []
+    for i in range(n_cams):
+        dev_id = Aravis.get_device_id(i)
+        print("Found: %s" % dev_id)
+        ids.append(dev_id)
+    return ids
+    
 class Aravis_Camera(Camera):
     def setup_camera(self):
         print("PROCESS ID: ", os.getpid())
         os.system("sudo chrt -f -p 1 %d" % os.getpid())
         Aravis.enable_interface ("Fake")
-        self.aravis_camera = Aravis.Camera.new (None)
+        self.aravis_camera = Aravis.Camera.new (self.cam_id)
         self.aravis_camera.set_region(0,0,2048,1536) #2064x1544        
-        self.aravis_camera.gv_set_packet_size(8000)
+        #self.aravis_camera.gv_set_packet_size(8000)
+        #self.aravis_camera.gv_set_packet_delay(2000)
+                
         aravis_device = self.aravis_camera.get_device();
 
         if self.aravis_camera.get_pixel_format_as_string()=='Mono8':
@@ -40,6 +53,7 @@ class Aravis_Camera(Camera):
         aravis_device.set_string_feature_value("TriggerSource", "Line0")
         
         #Triggering the flash...
+        #if triggerflash: #this camera might not be the one doing the triggering
         aravis_device.set_string_feature_value("LineSelector", "Line2")
         aravis_device.set_boolean_feature_value("StrobeEnable", True)
         aravis_device.set_string_feature_value("LineMode", "Strobe")
@@ -47,9 +61,13 @@ class Aravis_Camera(Camera):
         aravis_device.set_integer_feature_value("StrobeLinePreDelay", 200)
         aravis_device.set_string_feature_value("LineSource", "ExposureStartActive")
         aravis_device.set_boolean_feature_value("LineInverter",True)
+        
+            
         #aravis_device.set_string_feature_value("ExposureTimeMode","UltraShort")   
         self.aravis_camera.set_exposure_time(140) #40
         self.aravis_camera.set_gain(1)
+        
+
         ##########NEW CODE FOR SHORT EXPOSURE##########
         #aravis_device = self.aravis_camera.get_device();
         #aravis_device.set_string_feature_value("ExposureTimeMode","UltraShort")   

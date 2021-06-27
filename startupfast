@@ -3,7 +3,7 @@ export LD_LIBRARY_PATH=/home/pi/aravis/build/src
 cd /home/pi/bee_track/webinterface
 python3 -m http.server &
 
-sudo sysctl -w net.core.rmem_max=16777216 net.core.rmem_default=16777216
+sudo sysctl -w net.core.rmem_max=67108864 net.core.rmem_default=67108864
 sudo sysctl -w net.ipv4.route.flush=1
 sudo ifconfig eth0 mtu 9000
 python3 ../bee_track/core.py

@@ -1,6 +1,7 @@
 from flask import Flask, make_response, jsonify
 from bee_track.trigger import Trigger
 from bee_track.camera_aravis import Aravis_Camera as Camera
+from bee_track.camera_aravis import getcameraids
 from bee_track.tracking import Tracking
 from multiprocessing import Process, Queue
 import numpy as np
@@ -27,7 +28,7 @@ log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
 message_queue = None
-camera = None
+cameras = [] #None
 trigger = None
 tracking = None
 
@@ -49,8 +50,9 @@ def setdatetime(timestring):
 def set(component,field,value):
     print(component,field,value)
     """TO DO: Secure?"""
+    assert False
     comp = None
-    if component=='camera': comp = camera
+    if component=='camera': comp = cameras[0]
     if component=='trigger': comp = trigger
     if comp is None: 
         return "%s component not available" % component
@@ -60,9 +62,10 @@ def set(component,field,value):
 @app.route('/get/<string:component>/<string:field>')
 def get(component,field):
     print(component,field)
+    assert False
     """TO DO: Secure?"""
     comp = None
-    if component=='camera': comp = camera
+    if component=='camera': comp = cameras[0]
     if component=='trigger': comp = trigger
     if comp is None: 
         return "%s component not available" % component
@@ -98,7 +101,7 @@ def getmessage():
 def startup():
     global message_queue
     global trigger
-    global camera
+    global cameras
     global tracking
     global cam_trigger
     
@@ -111,14 +114,17 @@ def startup():
     trigger = Trigger(message_queue,cam_trigger)
     t = Process(target=trigger.worker)
     t.start()
-        
-    camera = Camera(message_queue,trigger.record,cam_trigger)
-    t = Process(target=camera.worker)
-    t.start()
-   
     
+    cam_ids = getcameraids()
     
-    tracking = Tracking(message_queue,camera.photo_queue)
+    for cam_id in cam_ids:
+        camera = Camera(message_queue,trigger.record,cam_trigger,cam_id=cam_id)
+        cameras.append(camera)
+        t = Process(target=camera.worker)
+        t.start()
+    assert len(cameras)>0
+    #we'll make the tracking camera the first one in the list    
+    tracking = Tracking(message_queue,cameras[0].photo_queue)
     t = Process(target=tracking.worker)
     t.start()
     return "startup successful"
@@ -137,7 +143,8 @@ def stop():
  
 @app.route('/setlabel/<string:label>')
 def setlabel(label):
-    camera.label.value = bytes(label[1:],'utf-8')
+    for camera in cameras:
+        camera.label.value = bytes(label[1:],'utf-8')
     return "Set to %s" % label[1:]
        
 @app.route('/reboot')
@@ -147,8 +154,9 @@ def reboot():
 @app.route('/test/<int:enable>')
 def test(enable):
     #global camera
-    camera.test.value = bool(enable)
-    if camera.test.value: return "Testing Enabled"
+    for camera in cameras:
+        camera.test.value = bool(enable)
+    if cameras[0].test.value: return "Testing Enabled"
     else: return "Testing Disabled"
     
     
@@ -169,7 +177,7 @@ def lowresmaximg(img,blocksize=10):
 def getimagecount():
     try:
         #return str(camera.index.value) #camera.photo_queue.len())
-        return str(camera.photo_queue.len())
+        return str(cameras[0].photo_queue.len())
     except Empty:
         return "No items"
 
@@ -177,7 +185,7 @@ def getimagecount():
 def getimage(number):
     #global camera
     #global message_queue
-    photoitem = camera.photo_queue.read(number)
+    photoitem = cameras[0].photo_queue.read(number)
     if photoitem is None:
         message_queue.put("Photo %d doesn't exist" % number)
         return "Failed"
@@ -228,7 +236,7 @@ def getcontact(): #TODO this is mostly done by getimage, maybe just return an in
 @app.route('/getimagecentre/<int:number>')
 def getimagecentre(number):
     #global camera
-    photoitem = camera.photo_queue.read(number)
+    photoitem = cameras[0].photo_queue.read(number)
     if photoitem is None:
         #global message_queue
         message_queue.put("Photo %d doesn't exist" % number)
