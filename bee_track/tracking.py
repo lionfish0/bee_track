@@ -3,7 +3,7 @@ import numpy as np
 from configurable import Configurable
 #import threading
 import retrodetect
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, Value
 import pickle
 import os
 from time import time
@@ -27,6 +27,7 @@ class Tracking(Configurable):
         self.photo_queue = photo_queue
         self.tracking_queue = Queue()         
         self.photolist = [] #multiprocessing lists are really slow
+        self.track = Value('i',1)
     def worker(self):
         self.index = 0
         while True:
@@ -47,8 +48,14 @@ class Tracking(Configurable):
             if photoitem['record']['endofset']:
                 print("Starting Tracking...")
                 
-                contact, found, _ = retrodetect.detectcontact(self.photolist,len(self.photolist)-1)#,thresholds=[10,3,7])
-                recordtime(photoitem,'retrodetect algorithm complete')
+                if self.track.value>0:
+                    contact, found, _ = retrodetect.detectcontact(self.photolist,len(self.photolist)-1)#,thresholds=[10,3,7])
+                    recordtime(photoitem,'retrodetect algorithm complete')
+                else:
+                    contact = None
+                    found = False
+                    recordtime(photoitem,'retrodetect algorithm skipped')
+                
                 print(contact)
                 
                 

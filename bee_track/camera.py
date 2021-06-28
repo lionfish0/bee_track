@@ -29,7 +29,7 @@ class Camera(Configurable):
         self.record = record
         self.label = multiprocessing.Array('c',100)
         self.index = Value('i',0)
-        self.savephotos = True
+        self.savephotos = Value('b',True)
         self.test = Value('b',False)
         self.cam_trigger = cam_trigger
         self.colour_camera = False
@@ -102,7 +102,7 @@ class Camera(Configurable):
                 camidstr = self.cam_id[-11:]
             else:
                 camidstr = ''
-            if self.savephotos:
+            if self.savephotos.value:
                 if rec is not None:
                     triggertime_string = photo_object['record']['triggertimestring']
                     filename = 'photo_object_%s_%s_%s_%04i.np' % (camidstr,triggertime_string,self.label.value.decode('utf-8'),self.index.value)

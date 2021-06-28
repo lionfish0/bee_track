@@ -50,19 +50,19 @@ def setdatetime(timestring):
 def set(component,field,value):
     print(component,field,value)
     """TO DO: Secure?"""
-    assert False
     comp = None
-    if component=='camera': comp = cameras[0]
-    if component=='trigger': comp = trigger
+    if component=='camera': comp = cameras
+    if component=='trigger': comp = [trigger]
+    if component=='tracking': comp = [tracking]
     if comp is None: 
         return "%s component not available" % component
-    comp.config_queue.put(['set',field,value])
+    for c in comp:
+        c.config_queue.put(['set',field,value])
     return "..."
     
 @app.route('/get/<string:component>/<string:field>')
 def get(component,field):
     print(component,field)
-    assert False
     """TO DO: Secure?"""
     comp = None
     if component=='camera': comp = cameras[0]
