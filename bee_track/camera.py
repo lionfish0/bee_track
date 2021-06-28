@@ -81,7 +81,10 @@ class Camera(Configurable):
                     photo = np.mean(photo,2)
                     photo = photo.astype(np.ubyte)
                     colorphoto = colorphoto.astype(np.ubyte)
-                photo_object['colorimg'] = colorphoto                    
+                photo_object['colorimg'] = colorphoto
+            else:
+                if photo is not None:
+                    photo = photo.astype(np.ubyte)
             photo_object['img'] = photo
             
             if self.test.value:
