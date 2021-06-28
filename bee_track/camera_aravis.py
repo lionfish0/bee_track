@@ -30,11 +30,16 @@ class Aravis_Camera(Camera):
         Aravis.enable_interface ("Fake")
         self.aravis_camera = Aravis.Camera.new (self.cam_id)
         self.aravis_camera.set_region(0,0,2048,1536) #2064x1544        
-        #self.aravis_camera.gv_set_packet_size(8000)
-        #self.aravis_camera.gv_set_packet_delay(2000)
-                
+        self.aravis_camera.gv_set_packet_size(8000)
+        self.aravis_camera.gv_set_packet_delay(40000) #np.random.randint(10000))
+        print("!!!!")
+        print(self.aravis_camera.gv_get_packet_delay())
+        
+        #self.aravis_camera.gv_set_stream_options(Aravis.GvStreamOption.NONE)
+        
         aravis_device = self.aravis_camera.get_device();
-
+        ####print(aravis_device.get_string_feature_value('MaxImageSize'))
+        
         if self.aravis_camera.get_pixel_format_as_string()=='Mono8':
             self.colour_camera = False
             pass
@@ -86,6 +91,19 @@ class Aravis_Camera(Camera):
               
         self.payload = self.aravis_camera.get_payload()
         self.stream = self.aravis_camera.create_stream(None, None)
+        
+        ###
+        
+        #self.stream.set_property('packet-timeout',5000)
+        #self.stream.set_property('frame-retention',250000)
+        #self.stream.set_property('packet-request-ratio',0.1)        
+        #self.stream.set_property('socket-buffer',Aravis.GvStreamSocketBuffer.FIXED)
+        #self.stream.set_property('socket-buffer-size',5000000)
+        #self.stream.set_property('packet-resend',Aravis.GvStreamPacketResend.ALWAYS)
+        
+        ###
+        
+        
         if self.stream is None:
             print("Failed to construct stream")
             return
@@ -105,25 +123,31 @@ class Aravis_Camera(Camera):
             self.cam_trigger.clear()
 
     def get_photo(self):
-        print(self.stream.get_n_buffers())
-        print("waiting for photo...")
-        #buffer = self.stream.timeout_pop_buffer(1000000) #blocking for one second
+        print(self.cam_id,self.stream.get_n_buffers())
+        print(self.cam_id,"waiting for photo...")
         buffer = self.stream.pop_buffer()
-        print("got buffer...")
+        
+        #buffer = None
+        #while buffer is None:
+        #    print("...")
+        #    time.sleep(np.random.rand()*1) #wait between 0 and 1 second
+        #    buffer = self.stream.timeout_pop_buffer(1000) #blocking for 1ms
+           
+        print(self.cam_id,"got buffer...")
         if buffer is None:
-            self.message_queue.put("Buffer read failed")
-            print("buffer read failed")
+            self.message_queue.put(self.cam_id+" Buffer read failed")
+            print(self.cam_id,"buffer read failed")
             gc.collect()            
             return None
         status = buffer.get_status()
         if status!=0:
-            print("Status Error")
-            print(status)
-            self.message_queue.put("Buffer Error: "+str(status))            
+            print(self.cam_id,"Status Error")
+            print(self.cam_id,status)
+            self.message_queue.put(self.cam_id+" Buffer Error: "+str(status))            
             self.stream.push_buffer(buffer) #return it to the buffer
             gc.collect()
             return None
-        print("buffer ok")
+        print(self.cam_id,"buffer ok")
         raw = np.frombuffer(buffer.get_data(),dtype=np.uint8).astype(float)
         self.stream.push_buffer(buffer)
         if self.colour_camera:

@@ -61,6 +61,8 @@ class Tracking(Configurable):
                 self.photo_queue.put(oldphotoitem,index-1)
                 if oldphotoitem['record'] is not None:
                     triggertime_string = oldphotoitem['record']['triggertimestring']
+                else:
+                    triggertime_string = 'unknown'
                 filename = 'tracking_photo_object_%s_%04i.np' % (triggertime_string,index-1)
 
                 #self.message_queue.put("Saved Tracking Photo: %s" % filename)
