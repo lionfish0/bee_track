@@ -270,11 +270,11 @@ function refreshimages(){
     $('span#imagecount').text(imagecount);
     msg('Downloading...');
     
-    
-    url = "http://"+$('input#url').val()+"/getimage/"+image;
+    camid = $('input#camid').val()
+    url = "http://"+$('input#url').val()+"/getimage/"+image+"/"+camid;
     $.getJSON(url, function(data) {$('#image').css("background-image",convertJSONtoImageURL(data)); }); 
     
-    url = "http://"+$('input#url').val()+"/getimagecentre/"+image;
+    url = "http://"+$('input#url').val()+"/getimagecentre/"+image+"/"+camid;
     $.getJSON(url, function(data) {$('#image_centre').css("background-image",convertJSONtoImageURL(data)); }); 
 }
 

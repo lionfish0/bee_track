@@ -69,8 +69,9 @@ class Aravis_Camera(Camera):
         
             
         #aravis_device.set_string_feature_value("ExposureTimeMode","UltraShort")   
+        #self.aravis_camera.set_exposure_time(400) #40
         self.aravis_camera.set_exposure_time(140) #40
-        self.aravis_camera.set_gain(1)
+        self.aravis_camera.set_gain(0)
         
 
         ##########NEW CODE FOR SHORT EXPOSURE##########

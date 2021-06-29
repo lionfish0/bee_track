@@ -124,7 +124,7 @@ def startup():
         t.start()
     assert len(cameras)>0
     #we'll make the tracking camera the first one in the list    
-    tracking = Tracking(message_queue,cameras[0].photo_queue)
+    tracking = Tracking(message_queue,cameras[1].photo_queue)
     t = Process(target=tracking.worker)
     t.start()
     return "startup successful"
@@ -181,11 +181,12 @@ def getimagecount():
     except Empty:
         return "No items"
 
+@app.route('/getimage/<int:number>/<int:camera_id>')
 @app.route('/getimage/<int:number>')
-def getimage(number):
+def getimage(number,camera_id=0):
     #global camera
     #global message_queue
-    photoitem = cameras[0].photo_queue.read(number)
+    photoitem = cameras[camera_id].photo_queue.read(number)
     if photoitem is None:
         message_queue.put("Photo %d doesn't exist" % number)
         return "Failed"
@@ -233,10 +234,12 @@ def getcontact(): #TODO this is mostly done by getimage, maybe just return an in
         return jsonify(None)
         
 
+@app.route('/getimagecentre/<int:number>/<int:camera_id>')
 @app.route('/getimagecentre/<int:number>')
-def getimagecentre(number):
+def getimagecentre(number,camera_id=0):
     #global camera
-    photoitem = cameras[0].photo_queue.read(number)
+    print(camera_id)
+    photoitem = cameras[camera_id].photo_queue.read(number)
     if photoitem is None:
         #global message_queue
         message_queue.put("Photo %d doesn't exist" % number)
