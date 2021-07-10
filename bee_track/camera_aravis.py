@@ -41,22 +41,36 @@ class Aravis_Camera(Camera):
         ####print(aravis_device.get_string_feature_value('MaxImageSize'))
         
         if self.aravis_camera.get_pixel_format_as_string()=='Mono8':
+            print("Monochrome")
             self.colour_camera = False
             pass
         else:
+            print("Colour")
             self.colour_camera = True
             aravis_device.set_string_feature_value("PixelFormat", "RGB8Packed")
-            
+        #Trying to get it working...
+        #aravis_device.set_string_feature_value("LineSelector", "Line0")
+        #aravis_device.set_string_feature_value("LineMode", "Input")
+        
+        
         #Triggering the camera:
         #  Software trigger...    
         #aravis_device.set_string_feature_value("TriggerMode", "On")
         #aravis_device.set_string_feature_value("TriggerSource", "Software")
+        
         #  Hardware trigger...
-        ##print(aravis_device.get_available_trigger_sources())
-        ##self.aravis_camera.set_trigger("Line1")
         aravis_device.set_string_feature_value("TriggerMode", "On")
         aravis_device.set_string_feature_value("TriggerSource", "Line0")
         
+        
+        ##print(aravis_device.get_available_trigger_sources())
+        ##print(self.aravis_camera.get_available_pixel_formats_as_strings())
+        ##self.aravis_camera.set_trigger("Line0")
+        ####### #self.aravis_camera.set_trigger_source("Line0")
+
+        aravis_device.set_string_feature_value("TriggerActivation", "RisingEdge");
+        aravis_device.set_string_feature_value("AcquisitionMode", "Continuous");
+
         #Triggering the flash...
         #if triggerflash: #this camera might not be the one doing the triggering
         aravis_device.set_string_feature_value("LineSelector", "Line2")

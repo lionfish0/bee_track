@@ -23,7 +23,7 @@ class Trigger(Configurable):
         self.t = multiprocessing.Value('d',t)
         self.flashseq = multiprocessing.Value('i',0) #0 = flash all, 1 = flash in sequence
         self.preptime = 0.05
-        self.triggertime = 0.05 #this will end up at least 200us
+        self.triggertime = 0.5 #this will end up at least 200us
         self.seqn = 0
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(self.trigger_pin, GPIO.OUT)
@@ -63,8 +63,16 @@ class Trigger(Configurable):
         triggertime = time.time() #TODO Why are these two different?
         triggertimestring = datetime.datetime.now() #need to convert to string later
         
+
+        
+        
+        triggertimestring = triggertimestring.strftime("%Y%m%d_%H:%M:%S.%f")
+        self.record.append({'index':self.index,'endofset':endofset,'direction':self.direction,'flash':fireflash,'flashselection':list(self.flashselection),'triggertime':triggertime,'triggertimestring':triggertimestring})
+        self.index+=1
+
         #Software trigger...
         #self.cam_trigger.set()
+        
         
         #Trigger via pin...
         GPIO.output(self.trigger_pin,True)
@@ -75,10 +83,8 @@ class Trigger(Configurable):
             
         #(trigger via pin)...
         GPIO.output(self.trigger_pin,False)
-        triggertimestring = triggertimestring.strftime("%Y%m%d_%H:%M:%S.%f")
+
         
-        self.record.append({'index':self.index,'endofset':endofset,'direction':self.direction,'flash':fireflash,'flashselection':list(self.flashselection),'triggertime':triggertime,'triggertimestring':triggertimestring})
-        self.index+=1
 
 
     def worker(self):   

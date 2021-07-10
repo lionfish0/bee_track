@@ -124,7 +124,7 @@ def startup():
         t.start()
     assert len(cameras)>0
     #we'll make the tracking camera the first one in the list    
-    tracking = Tracking(message_queue,cameras[1].photo_queue)
+    tracking = Tracking(message_queue,cameras[0].photo_queue)
     t = Process(target=tracking.worker)
     t.start()
     return "startup successful"
