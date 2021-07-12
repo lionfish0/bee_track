@@ -97,6 +97,45 @@ def getmessage():
     except Empty:
         return msgs
 
+import socket
+def get_ip():
+    #From https://stackoverflow.com/a/28950776
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
+
+def share_ip():
+    import requests as req
+    ipaddr = get_ip()
+    try:
+        print("Trying to get our ID")
+        id = open('device_id.txt','r').read()
+    except FileNotFoundError:
+        print("Failed to find ID")
+        id = '9999'
+    print("Using ID: %s" % id)
+    try:
+        print("Trying to access remote server")
+        url = 'http://michaeltsmith.org.uk:5000/set/%s/%s' % (id,ipaddr)
+        print(url)
+        req.get(url)
+    except:
+        print("FAILED")
+        pass
+
+
+@app.route('/setid/<int:id>')
+def setid(id):
+    open('device_id.txt','w').write(str(id))
+    return "Done"
+
 @app.route('/startup')
 def startup():
     global message_queue
@@ -127,6 +166,7 @@ def startup():
     tracking = Tracking(message_queue,cameras[0].photo_queue)
     t = Process(target=tracking.worker)
     t.start()
+    share_ip()
     return "startup successful"
     
 @app.route('/start')
