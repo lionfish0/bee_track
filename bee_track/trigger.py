@@ -23,7 +23,7 @@ class Trigger(Configurable):
         self.t = multiprocessing.Value('d',t)
         self.flashseq = multiprocessing.Value('i',0) #0 = flash all, 1 = flash in sequence
         self.preptime = 0.05
-        self.triggertime = 0.5 #this will end up at least 200us
+        self.triggertime = 0.05 #this will end up at least 200us
         self.seqn = 0
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(self.trigger_pin, GPIO.OUT)

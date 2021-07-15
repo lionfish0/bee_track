@@ -109,6 +109,7 @@ class Camera(Configurable):
                 if rec is not None:
                     triggertime_string = photo_object['record']['triggertimestring']
                     filename = 'photo_object_%s_%s_%s_%04i.np' % (camidstr,triggertime_string,self.label.value.decode('utf-8'),self.index.value)
+                    photo_object['filename'] = filename
                     self.message_queue.put("Saved Photo: %s" % filename)
                     pickle.dump(photo_object,open(filename,'wb'))
                 else:

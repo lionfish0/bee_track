@@ -66,12 +66,13 @@ class Tracking(Configurable):
                 oldphotoitem = self.photo_queue.read(index-1)
                 oldphotoitem['track']=contact
                 self.photo_queue.put(oldphotoitem,index-1)
-                if oldphotoitem['record'] is not None:
-                    triggertime_string = oldphotoitem['record']['triggertimestring']
-                else:
-                    triggertime_string = 'unknown'
-                filename = 'tracking_photo_object_%s_%04i.np' % (triggertime_string,index-1)
-
+                #if oldphotoitem['record'] is not None:
+                #    triggertime_string = oldphotoitem['record']['triggertimestring']
+                #else:
+                #    triggertime_string = 'unknown'
+                #filename = 'tracking_photo_object_%s_%04i.np' % (triggertime_string,index-1)
+                filename = 'track_'+oldphotoitem['filename']
+                
                 #self.message_queue.put("Saved Tracking Photo: %s" % filename)
                 #pickle.dump(oldphotoitem,open(filename,'wb'))
 
