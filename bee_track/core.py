@@ -3,6 +3,7 @@ from bee_track.trigger import Trigger
 from bee_track.camera_aravis import Aravis_Camera as Camera
 from bee_track.camera_aravis import getcameraids
 from bee_track.tracking import Tracking
+from bee_track.file_manager import File_Manager
 from multiprocessing import Process, Queue
 import numpy as np
 import io
@@ -143,10 +144,13 @@ def startup():
     global cameras
     global tracking
     global cam_trigger
+    global file_manager
     
     if trigger is not None:
         return "startup already complete"
     message_queue = Queue()
+    
+    file_manager = File_Manager(message_queue)
     
     cam_trigger = multiprocessing.Event()
 
@@ -180,6 +184,11 @@ def stop():
     #global trigger
     trigger.run.clear()
     return "Collection Stopped"
+
+@app.route('/compress')
+def compress():
+    file_manager.compress_photos()
+    return "In progress"
 
 @app.route('/setlabel/<string:label>')
 def setlabel(label):

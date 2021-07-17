@@ -11,13 +11,13 @@
 <h3>Bumblebee Tracking System v2.0</h3>
 Battery: <span id="battery"></span>
 <div id="config">
-<input id="label" value="" />
-<input id="url" value="10.3.141.1:5000" />
-<input id="camid" value="0" />
+label for file: <input id="label" value="" /><br/>
+url to API: <input id="url" value="10.3.141.1:5000" /><br/>
 <br/>
 Capture:
 <button id="start">Start</button>
 <button id="stop">Stop</button><br/>
+<br/>
 Interval <input id="interval" value=3 size=2/> seconds
 <button id="setinterval">set</button><br/><br />
 <input type='checkbox' id='realtimetracking' value='realtimetracking'>real time tracking<br/>
@@ -27,9 +27,9 @@ Interval <input id="interval" value=3 size=2/> seconds
 <button id="imagedownx10" class="refreshimages">&lt;&lt;</button>
 <button id="imageupx10" class="refreshimages">&gt;&gt;</button>
 <br />
-<input type="checkbox" id="latestimage">Update to latest image</input>
-<input type="checkbox" id="contactimage">Update for contact</input>
-<input id="detectthreshold" size=8 value=0.8 />
+<input type="checkbox" id="latestimage">Update to latest image</input><br/>
+<input type="checkbox" id="contactimage">Update for contact</input><br/>
+Detection threshold: <input id="detectthreshold" size=8 value=0.8 />
 <br />
 <br />Image <span id="index">0</span> of <span id="imagecount">?</span><br />
 Image threshold: <input id="maxval" size=3 value=10 />
@@ -39,6 +39,9 @@ Image threshold: <input id="maxval" size=3 value=10 />
 <br/>
 <input type="text" id="console_input"></text>
 <p><pre>/set/trigger/t/6</pre></p>
+<br/>
+<br/>
+(to change the camera id): <input id="camid" value="0" />
 </div>
 <div id="image">
 </div>
@@ -47,7 +50,6 @@ Image threshold: <input id="maxval" size=3 value=10 />
 </div>
 <span id="trackingresults">[no tracking results]</span>
 <div>
-<a href="http://192.168.43.98:5000/reboot">REBOOT</a>
 </div>
  <script src="track.js"></script>
 </body>
