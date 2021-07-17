@@ -180,7 +180,7 @@ def stop():
     #global trigger
     trigger.run.clear()
     return "Collection Stopped"
- 
+
 @app.route('/setlabel/<string:label>')
 def setlabel(label):
     for camera in cameras:

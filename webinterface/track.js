@@ -278,6 +278,24 @@ function refreshimages(){
     $.getJSON(url, function(data) {$('#image_centre').css("background-image",convertJSONtoImageURL(data)); }); 
 }
 
+$('input#realtimetracking').click(function(){
+  if (document.getElementById('realtimetracking').checked) {
+    code = "1";
+  }
+  else
+  {
+    code = "0";
+  }
+  url = "http://"+$('input#url').val()+"/set/tracking/track/"+code;
+  $.ajax({
+      url: url,
+      success: function(data, status, jqXHR){
+        msg('Set');
+      },
+      error: function(jqXHR, status, errorThrown){msg('Set Error');}
+  });
+});
+
 $('button#setinterval').click(function(){
     msg('Setting...');
     url = "http://"+$('input#url').val()+"/set/trigger/t/"+$('input#interval').val();
