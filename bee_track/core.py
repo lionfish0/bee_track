@@ -198,6 +198,7 @@ def setlabel(label):
        
 @app.route('/reboot')
 def reboot():
+    print("Reboot")
     os.system('sudo reboot')
     return "Reboot Initiated"
 

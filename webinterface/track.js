@@ -311,6 +311,7 @@ $('button#setinterval').click(function(){
 $('button#reboot').click(function(){
     msg('Rebooting...');
     url = "http://"+$('input#url').val()+"/reboot";
+    alert(url)
     $.ajax({
       url: url,
       success: function(data, status, jqXHR){
