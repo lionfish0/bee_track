@@ -199,6 +199,28 @@ def setlabel(label):
 @app.route('/reboot')
 def reboot():
     os.system('sudo reboot')
+    return "Reboot Initiated"
+
+
+def runcommand(cmnd):
+    #From https://stackoverflow.com/questions/16198546/get-exit-code-and-stderr-from-subprocess-call
+    try:
+        output = subprocess.check_output(
+            cmnd, stderr=subprocess.STDOUT, shell=True, timeout=3,
+            universal_newlines=True)
+    except subprocess.CalledProcessError as exc:
+        return "Failed Update: "+str(exc.returncode)+str(exc.output)
+    else:
+        return "Updated: "+str(output)
+
+@app.route('/update')
+def update():
+    #res = ""
+    #os.system('whoami'))
+    #_,res += os.system('git pull')
+    #res = subprocess.check_output(['git pull'])
+    res = runcommand('git pull')
+    return "Update Complete: \n"+res
     
 @app.route('/test/<int:enable>')
 def test(enable):

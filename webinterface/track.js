@@ -308,6 +308,30 @@ $('button#setinterval').click(function(){
     });
 });
 
+$('button#reboot').click(function(){
+    msg('Rebooting...');
+    url = "http://"+$('input#url').val()+"/reboot";
+    $.ajax({
+      url: url,
+      success: function(data, status, jqXHR){
+        msg('Reboot in progress...');
+      },
+      error: function(jqXHR, status, errorThrown){msg('Reboot Error');}
+    });
+});
+
+$('button#update').click(function(){
+    msg('Updating...');
+    url = "http://"+$('input#url').val()+"/update";
+    $.ajax({
+      url: url,
+      success: function(data, status, jqXHR){
+        msg('Update Complete. Reboot Required: '+data);
+      },
+      error: function(jqXHR, status, errorThroewn){msg('Update Error');}
+    });
+});
+
 function sendinstruction(instruction){
     msg(instruction);
     url = "http://"+$('input#url').val()+instruction;
