@@ -296,6 +296,20 @@ $('input#realtimetracking').click(function(){
   });
 });
 
+$('input#flashseq').click(function(){
+
+  code = $('input[name="flashseq"]:checked').val();
+  url = "http://"+$('input#url').val()+"/set/trigger/flashseq/"+code;
+  $.ajax({
+      url: url,
+      success: function(data, status, jqXHR){
+        msg('Set');
+      },
+      error: function(jqXHR, status, errorThrown){msg('Set Error');}
+  });
+});
+
+
 $('button#setinterval').click(function(){
     msg('Setting...');
     url = "http://"+$('input#url').val()+"/set/trigger/t/"+$('input#interval').val();

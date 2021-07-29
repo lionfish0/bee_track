@@ -21,7 +21,7 @@ class Trigger(Configurable):
         self.flashselection.append(2)
         self.flashselection.append(3)
         self.t = multiprocessing.Value('d',t)
-        self.flashseq = multiprocessing.Value('i',0) #0 = flash all, 1 = flash in sequence
+        self.flashseq = multiprocessing.Value('i',0) #0 = flash all, 1 = flash 2 at a time, 1 = flash in sequence,
         self.preptime = 0.05
         self.triggertime = 0.05 #this will end up at least 200us
         self.seqn = 0
@@ -51,7 +51,13 @@ class Trigger(Configurable):
             if self.flashseq.value==0:
                 for flash in self.flashselection:
                     GPIO.output(self.flash_select_pins[flash],True)
-            else:
+            if self.flashseq.value==1:
+                GPIO.output(self.flash_select_pins[self.flashselection[self.seqn]],True)
+                GPIO.output(self.flash_select_pins[self.flashselection[self.seqn+1]],True)
+                self.seqn+=2
+                if self.seqn>=len(self.flashselection):
+                    self.seqn = 0
+            if self.flashseq.value==2:
                 GPIO.output(self.flash_select_pins[self.flashselection[self.seqn]],True)
                 self.seqn+=1
                 if self.seqn>=len(self.flashselection):

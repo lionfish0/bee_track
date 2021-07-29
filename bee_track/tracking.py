@@ -27,7 +27,7 @@ class Tracking(Configurable):
         self.photo_queue = photo_queue
         self.tracking_queue = Queue()         
         self.photolist = [] #multiprocessing lists are really slow
-        self.track = Value('i',1)
+        self.track = Value('i',0)
     def worker(self):
         self.index = 0
         while True:
