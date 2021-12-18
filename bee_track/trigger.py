@@ -62,6 +62,9 @@ class Trigger(Configurable):
                 self.seqn+=1
                 if self.seqn>=len(self.flashselection):
                     self.seqn = 0
+            if self.flashseq.value==9:
+                for pin in self.flash_select_pins:
+                    GPIO.output(pin, False)
         else:
             for pin in self.flash_select_pins:
                 GPIO.output(pin, False)
