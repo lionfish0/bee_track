@@ -34,6 +34,18 @@ class Camera(Configurable):
         self.cam_trigger = cam_trigger
         self.colour_camera = False
         self.cam_id = cam_id
+        self.config_camera_queue = Queue()
+
+    def config_camera(self, param, value):
+        """Implement for specific cameras
+        param = 'exposure', 'delay' or 'predelay'
+        """
+        self.config_camera_queue.put([param,value])
+        
+        
+    def camera_config_worker(self):
+        """implements whatever configures the camera (E.g. setting the exposure)"""
+        pass
         
     def camera_trigger(self):
         """implement whatever triggers the camera
@@ -53,6 +65,8 @@ class Camera(Configurable):
         print("Camera worker started")
         self.setup_camera()
         t = threading.Thread(target=self.camera_trigger)
+        t.start()
+        t = threading.Thread(target=self.camera_config_worker)
         t.start()
         print("Camera setup complete")
         last_photo_object = None

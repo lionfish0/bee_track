@@ -14,8 +14,8 @@ class Trigger(Configurable):
         self.index = 0
         self.record = self.manager.list()
         self.direction = 0
-        self.flash_select_pins = [8,10,12,16]
-        self.trigger_pin = 18
+        self.flash_select_pins = [14,15,18,23] #[8,10,12,16] #Board->BCM pins
+        self.trigger_pin = 24 #18 #Board->BCM pins
         self.flashselection.append(0)
         self.flashselection.append(1)
         self.flashselection.append(2)
@@ -25,7 +25,7 @@ class Trigger(Configurable):
         self.preptime = 0.05
         self.triggertime = 0.05 #this will end up at least 200us
         self.seqn = 0
-        GPIO.setmode(GPIO.BOARD)
+        GPIO.setmode(GPIO.BCM) #GPIO.BOARD) #Board->BCM
         GPIO.setup(self.trigger_pin, GPIO.OUT)
         for pin in self.flash_select_pins:
             GPIO.setup(pin, GPIO.OUT)

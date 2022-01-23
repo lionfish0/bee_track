@@ -1,5 +1,6 @@
 from flask import Flask, make_response, jsonify
 from bee_track.trigger import Trigger
+from bee_track.rotate import Rotate
 from bee_track.camera_aravis import Aravis_Camera as Camera
 from bee_track.camera_aravis import getcameraids
 from bee_track.tracking import Tracking
@@ -31,6 +32,7 @@ log.setLevel(logging.ERROR)
 message_queue = None
 cameras = [] #None
 trigger = None
+rotate = None
 tracking = None
 
 @app.route('/')
@@ -54,6 +56,7 @@ def set(component,field,value):
     comp = None
     if component=='camera': comp = cameras
     if component=='trigger': comp = [trigger]
+    if component=='rotate': comp = rotate
     if component=='tracking': comp = [tracking]
     if comp is None: 
         return "%s component not available" % component
@@ -68,6 +71,7 @@ def get(component,field):
     comp = None
     if component=='camera': comp = cameras[0]
     if component=='trigger': comp = trigger
+    if component=='rotate': comp = rotate
     if comp is None: 
         return "%s component not available" % component
     comp.config_queue.put(['get',field])
@@ -84,7 +88,10 @@ def getbattery():
         battery.write(batstr)
     return batstr
     
-
+@app.route('/config/<string:instruction>/<int:value>')
+def configcam(instruction,value):
+    cameras[0].config_camera_queue.put([instruction,value])
+    return "Done"
     
 @app.route('/getmessage')
 def getmessage():
@@ -141,9 +148,11 @@ def setid(id):
 def startup():
     global message_queue
     global trigger
+    global rotate
     global cameras
     global tracking
     global cam_trigger
+    global rotate
     global file_manager
     
     if trigger is not None:
@@ -170,6 +179,11 @@ def startup():
     tracking = Tracking(message_queue,cameras[0].photo_queue)
     t = Process(target=tracking.worker)
     t.start()
+    
+    rotate = Rotate(message_queue)
+    t = Process(target=rotate.worker)
+    t.start()
+    
     share_ip()
     return "startup successful"
     
@@ -189,6 +203,12 @@ def stop():
 def compress():
     file_manager.compress_photos()
     return "In progress"
+
+@app.route('/rotatetoangle/<float:targetangle>')
+def rotatetoangle(targetangle):
+    rotate.targetangle.value = targetangle
+    rotate.rotation.set()
+    return "Rotation Started"
 
 @app.route('/setlabel/<string:label>')
 def setlabel(label):

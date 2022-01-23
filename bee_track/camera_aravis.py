@@ -83,7 +83,6 @@ class Aravis_Camera(Camera):
         
             
         #aravis_device.set_string_feature_value("ExposureTimeMode","UltraShort")   
-        #self.aravis_camera.set_exposure_time(400) #40
         self.aravis_camera.set_exposure_time(140) #40
         self.aravis_camera.set_gain(0)
         
@@ -126,8 +125,24 @@ class Aravis_Camera(Camera):
         for i in range(0,16):
             self.stream.push_buffer(Aravis.Buffer.new_allocate(self.payload))
         print("Ready")
+        
+
     
 
+        
+    def camera_config_worker(self):
+        while True:
+            config = self.config_camera_queue.get()
+            print("Got:")
+            print(config)
+            if config[0] == 'exposure':
+                self.aravis_camera.set_exposure_time(config[1])
+            if config[0] == 'delay':
+                aravis_device = self.aravis_camera.get_device()
+                aravis_device.set_integer_feature_value("StrobeLineDelay", config[1])
+            if config[0] == 'predelay':   
+                aravis_device = self.aravis_camera.get_device()             
+                aravis_device.set_integer_feature_value("StrobeLinePreDelay", config[1])
     
     def camera_trigger(self):
         while True:
