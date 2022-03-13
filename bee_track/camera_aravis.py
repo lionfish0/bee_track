@@ -29,7 +29,21 @@ class Aravis_Camera(Camera):
         os.system("sudo chrt -f -p 1 %d" % os.getpid())
         Aravis.enable_interface ("Fake")
         self.aravis_camera = Aravis.Camera.new (self.cam_id)
-        self.aravis_camera.set_region(0,0,2048,1536) #2064x1544        
+        self.width = int(2048)
+        self.height = int(1536)
+        
+        self.width = int(2048)
+        self.height = int(1536)
+        self.aravis_camera.set_binning(1,1)
+        self.aravis_camera.set_region(0,0,self.width,self.height) #2064x1544                
+        
+        
+        #self.width = int(2048/2)
+        #self.height = int(1536/2)
+        #self.aravis_camera.set_region(0,0,self.width,self.height) #2064x1544        
+        #self.aravis_camera.set_binning(2,2)
+        
+
         self.aravis_camera.gv_set_packet_size(8000)
         self.aravis_camera.gv_set_packet_delay(40000) #np.random.randint(10000))
         print("!!!!")
@@ -40,14 +54,19 @@ class Aravis_Camera(Camera):
         aravis_device = self.aravis_camera.get_device();
         ####print(aravis_device.get_string_feature_value('MaxImageSize'))
         
-        if self.aravis_camera.get_pixel_format_as_string()=='Mono8':
-            print("Monochrome")
-            self.colour_camera = False
-            pass
-        else:
+        availpixelformats = self.aravis_camera.dup_available_pixel_formats_as_strings()
+        
+        if 'BayerRG8' in availpixelformats:
+            aravis_device.set_string_feature_value("PixelFormat", "BayerRG8")    
+        
+        #Mono8, RGB8Packed, BayerRG8
+        if self.aravis_camera.get_pixel_format_as_string()=='RGB8Packed':
             print("Colour")
             self.colour_camera = True
-            aravis_device.set_string_feature_value("PixelFormat", "RGB8Packed")
+        else:
+            print("Monochrome")
+            self.colour_camera = False
+
         #Trying to get it working...
         #aravis_device.set_string_feature_value("LineSelector", "Line0")
         #aravis_device.set_string_feature_value("LineMode", "Input")
@@ -124,6 +143,15 @@ class Aravis_Camera(Camera):
         self.aravis_camera.start_acquisition()
         for i in range(0,16):
             self.stream.push_buffer(Aravis.Buffer.new_allocate(self.payload))
+            
+            
+        #Print info about camera...
+        print("Camera vendor : %s" %(self.aravis_camera.get_vendor_name()))
+        print("Camera model  : %s" %(self.aravis_camera.get_model_name()))
+        print("Camera id     : %s" %(self.aravis_camera.get_device_id()))
+        print("Pixel format  : %s" %(self.aravis_camera.get_pixel_format_as_string()))
+
+        
         print("Ready")
         
 
@@ -133,8 +161,8 @@ class Aravis_Camera(Camera):
     def camera_config_worker(self):
         while True:
             config = self.config_camera_queue.get()
-            print("Got:")
-            print(config)
+            if self.debug: print("Got:")
+            if self.debug: print(config)
             if config[0] == 'exposure':
                 self.aravis_camera.set_exposure_time(config[1])
             if config[0] == 'delay':
@@ -146,15 +174,15 @@ class Aravis_Camera(Camera):
     
     def camera_trigger(self):
         while True:
-            print("WAITING FOR TRIGGER")
+            if self.debug: print("WAITING FOR TRIGGER")
             self.cam_trigger.wait()
-            print("Software Trigger...")
+            if self.debug: print("Software Trigger...")
             self.aravis_camera.software_trigger()
             self.cam_trigger.clear()
 
-    def get_photo(self):
-        print(self.cam_id,self.stream.get_n_buffers())
-        print(self.cam_id,"waiting for photo...")
+    def get_photo(self,getraw=False):
+        if self.debug: print(self.cam_id,self.stream.get_n_buffers())
+        if self.debug: print(self.cam_id,"waiting for photo...")
         buffer = self.stream.pop_buffer()
         
         #buffer = None
@@ -163,7 +191,7 @@ class Aravis_Camera(Camera):
         #    time.sleep(np.random.rand()*1) #wait between 0 and 1 second
         #    buffer = self.stream.timeout_pop_buffer(1000) #blocking for 1ms
            
-        print(self.cam_id,"got buffer...")
+        if self.debug: print(self.cam_id,"got buffer...")
         if buffer is None:
             self.message_queue.put(self.cam_id+" Buffer read failed")
             print(self.cam_id,"buffer read failed")
@@ -177,13 +205,16 @@ class Aravis_Camera(Camera):
             self.stream.push_buffer(buffer) #return it to the buffer
             gc.collect()
             return None
-        print(self.cam_id,"buffer ok")
-        raw = np.frombuffer(buffer.get_data(),dtype=np.uint8).astype(float)
+        if self.debug: print(self.cam_id,"buffer ok")
+        if getraw:
+            raw = np.frombuffer(buffer.get_data(),dtype=np.uint8)#no type conversion!
+        else:
+            raw = np.frombuffer(buffer.get_data(),dtype=np.uint8).astype(float)        
         self.stream.push_buffer(buffer)
         if self.colour_camera:
-            return np.reshape(raw,[1536,2048,3])
+            return np.reshape(raw,[self.height,self.width,3])
         else:
-            return np.reshape(raw,[1536,2048])
+            return np.reshape(raw,[self.height,self.width])
         
     def close(self):
         """

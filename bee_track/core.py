@@ -133,7 +133,11 @@ def share_ip():
         print("Trying to access remote server")
         url = 'http://michaeltsmith.org.uk:5000/set/%s/%s' % (id,ipaddr)
         print(url)
-        req.get(url)
+        req.get(url,timeout=10) #tries to share IP address on server
+        #
+        ##temporary test...
+        #import time
+        #time.sleep(10) #simulate delay...
     except:
         print("FAILED")
         pass
@@ -190,6 +194,17 @@ def startup():
 @app.route('/start')
 def start():
     #global trigger
+    nextindex = max([camera.index.value for camera in cameras]+[trigger.index.value])
+        
+    #reset indicies
+    for camera in cameras:
+        camera.index.value = nextindex
+    trigger.index.value = nextindex
+
+    for camera in cameras:
+        print(camera.index.value)
+    print(trigger.index.value)
+
     trigger.run.set()
     return "Collection Started"
     
@@ -330,7 +345,6 @@ def getcontact(): #TODO this is mostly done by getimage, maybe just return an in
 @app.route('/getimagecentre/<int:number>')
 def getimagecentre(number,camera_id=0):
     #global camera
-    print(camera_id)
     photoitem = cameras[camera_id].photo_queue.read(number)
     if photoitem is None:
         #global message_queue
