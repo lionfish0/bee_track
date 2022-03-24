@@ -96,13 +96,13 @@ class Aravis_Camera(Camera):
         aravis_device.set_boolean_feature_value("StrobeEnable", True)
         aravis_device.set_string_feature_value("LineMode", "Strobe")
         aravis_device.set_integer_feature_value("StrobeLineDelay", 100)
-        aravis_device.set_integer_feature_value("StrobeLinePreDelay", 200)
+        aravis_device.set_integer_feature_value("StrobeLinePreDelay", 165)#200
         aravis_device.set_string_feature_value("LineSource", "ExposureStartActive")
         aravis_device.set_boolean_feature_value("LineInverter",True)
         
             
         #aravis_device.set_string_feature_value("ExposureTimeMode","UltraShort")   
-        self.aravis_camera.set_exposure_time(140) #40
+        self.aravis_camera.set_exposure_time(90) #140
         self.aravis_camera.set_gain(0)
         
 
