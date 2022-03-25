@@ -145,7 +145,9 @@ def share_ip():
 
 @app.route('/setid/<int:id>')
 def setid(id):
+    print("Updating device ID: %s" % str(id))
     open('device_id.txt','w').write(str(id))
+    print("Updated")
     return "Done"
 
 @app.route('/startup')
