@@ -33,3 +33,22 @@
     left:350px;
     top:550px; 
 }
+#tagimage0 {
+    position:absolute;
+    left:350px;
+    top:700px;
+    width:150px;
+    height:150px;
+    background-size: 150px 150px;
+    background-image:url("nodata.png");
+}
+#tagimage1 {
+    position:absolute;
+    left:510px;
+    top:700px;
+    width:150px;
+    height:150px;
+    background-size: 150px 150px;
+    background-image:url("nodata.png");
+}
+

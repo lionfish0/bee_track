@@ -191,6 +191,46 @@ function drawcrosshair(imdata,x,y,size,imscale,width,height,r,g,b) {
 
 }
 
+function convertSimpleJSONtoImageURL(img) {
+    img
+    height = img.length
+    width = img[0].length
+
+    var canvas=document.createElement("canvas");
+    var ctx=canvas.getContext("2d");
+
+    // size the canvas to your desired image
+    canvas.width=width;
+    canvas.height=height;
+
+    // get the imageData and pixel array from the canvas
+    var imgData=ctx.getImageData(0,0,width,height);
+    var imdata=imgData.data;
+
+    // manipulate some pixel elements
+    row = 0; //height-1;
+    col = 0;
+    scale = 255/$('input#maxval').val()
+
+    for(var i=0;i<imdata.length;i+=4){
+        c = img[row][col]*scale;
+        if (c>255) {c=255;}
+        imdata[i]=c;
+        imdata[i+1] = c;
+        imdata[i+2] = c;
+        imdata[i+3]=255; // make this pixel opaque
+        col = col + 1;
+        if (col>=width) {
+          col = 0;
+          row = row + 1;
+        }
+    }
+
+    // put the modified pixels back on the canvas
+    ctx.putImageData(imgData,0,0);
+    return "url('"+canvas.toDataURL()+"')";
+}
+
 function convertJSONtoImageURL(data) {
     img = data['photo']
     record = data['record']
@@ -272,7 +312,20 @@ function refreshimages(){
     
     camid = $('input#camid').val()
     url = "http://"+$('input#url').val()+"/getimage/"+image+"/"+camid;
-    $.getJSON(url, function(data) {$('#image').css("background-image",convertJSONtoImageURL(data)); }); 
+    $.getJSON(url, function(data) {
+    idx = 0;
+    if ('track' in data) {
+        if ((data['track']!=null) && (data['track'].length>0)) {
+            console.log(data['track']);
+            
+            for (var i=0;i<data['track'].length;i++){
+                $('#tagimage'+idx).css("background-image",convertSimpleJSONtoImageURL(data['track'][i]['patch'])); 
+                idx = idx + 1;
+            }
+        }
+    }
+    $('#image').css("background-image",convertJSONtoImageURL(data)); 
+    }); 
     
     url = "http://"+$('input#url').val()+"/getimagecentre/"+image+"/"+camid;
     $.getJSON(url, function(data) {$('#image_centre').css("background-image",convertJSONtoImageURL(data)); }); 
