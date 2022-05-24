@@ -1,6 +1,6 @@
 import numpy as np
 #from QueueBuffer import QueueBuffer
-from configurable import Configurable
+from bee_track.configurable import Configurable
 #import threading
 import retrodetect
 from multiprocessing import Process, Queue, Value
@@ -20,7 +20,57 @@ def recordtime(photoitem,msg):
 
 def prettyprinttimes(timemsgs):
     for msg,ts in timemsgs:
-        print("%30s: %15s" % (msg,ts))    
+        print("%30s: %15s" % (msg,ts))  
+        
+        
+        
+import numpy.polynomial.polynomial as poly
+    
+class TagAnalysis():
+    def __init__(self, img, track):
+        """
+        Pass the photo and the 'track' dictonary (containing an 'x' and 'y' element in the dictionary).
+        """
+        x = track['x']
+        y = track['y']
+        #round to even pixels to ensure Bayer structure remains intact
+        self.x = (x//2)*2
+        self.y = (y//2)*2
+        #self.img = img
+        
+        #TODO Assert the x and y are all in the img
+        self.tagimg = img[y-4:y+4,x-4:x+4]
+
+    def computefast(self):
+        rgb = []
+        rgb.append(np.mean(self.tagimg[::2,::2]))
+        rgb.append(np.mean(self.tagimg[1::2,::2])/2+np.mean(self.tagimg[::2,1::2])/2)
+        rgb.append(np.mean(self.tagimg[1::2,1::2]))        
+        return np.array(rgb),np.zeros(3)
+        
+    def fitfocus(self):
+        temp = self.tagimg.copy() #background subtraction
+        temp[temp>3]=3
+        meanimg = np.mean(self.tagimg,0)
+        meanimg = meanimg - np.mean(temp)
+        
+        xs = np.arange(len(meanimg))
+        meanimg[meanimg<0.01]=np.NaN
+        xs = xs[~np.isnan(meanimg)]
+        meanimg = meanimg[~np.isnan(meanimg)]
+        if len(xs)<2:
+            self.focuscoefs = [0,0,0]
+            return [0,0,0]
+        
+        logmeans = np.log(meanimg)
+        coefs = poly.polyfit(xs, logmeans, 2)
+        
+        self.focuscoefs = coefs
+        
+        preds = poly.polyval(xs, coefs)
+        err = np.sum((preds - logmeans)**2)/np.sum((np.mean(logmeans)-logmeans)**2)
+        return coefs, err
+                  
 class Tracking(Configurable):
     def __init__(self,message_queue,photo_queue):
         super().__init__(message_queue)
@@ -63,6 +113,11 @@ class Tracking(Configurable):
                 recordtime(photoitem,'adding contact to track')
                 
                 photoitem['track']=contact
+                
+                for t in photo['track']:
+                    ta = TagAnalysis(photoitem['img'],t)
+                    t['rbg'] = ta.computefast()
+                    t['focus'] = ta.fitfocus()
                 recordtime(photoitem,'storing photoitem on photo_queue')                
                 self.photo_queue.put(photoitem,index)                
                 #TODO loop backwards until we reach earlier endofset
