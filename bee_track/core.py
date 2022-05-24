@@ -24,6 +24,7 @@ from flask_compress import Compress
 app = Flask(__name__)
 Compress(app)
 CORS(app)
+from glob import glob
 
 import logging
 log = logging.getLogger('werkzeug')
@@ -216,7 +217,7 @@ def stop():
     trigger.run.clear()
     return "Collection Stopped"
 
-@app.route('/compress')
+@app.route('/compress') ##TODO ADDED ZIP AND COMPRESS!!
 def compress():
     file_manager.compress_photos()
     return "In progress"
@@ -260,7 +261,7 @@ def runcommandnowait(cmnd):
     
 
     
-@app.route('/zip')
+@app.route('/zip') ##TODO ADDED ZIP AND COMPRESS!!
 def zip():
     import datetime
     now = datetime.datetime.now()
@@ -370,6 +371,22 @@ def getcontact(): #TODO this is mostly done by getimage, maybe just return an in
     except Empty:
         return jsonify(None)
         
+@app.route('/addtest')
+def addtestdata():
+    for fn in sorted(glob('*.np')):
+        print(fn)
+        try:
+            photo = np.load(fn,allow_pickle=True)
+        except EOFError:
+            print("file might be empty")
+            continue
+        except OSError:
+            print("File might not be a pickle file")
+            continue
+        if 'img' not in photo: continue
+        if photo['img'] is None: continue
+        cameras[0].photo_queue.put(photo)
+    return "Done"
 
 @app.route('/getimagecentre/<int:number>/<int:camera_id>')
 @app.route('/getimagecentre/<int:number>')

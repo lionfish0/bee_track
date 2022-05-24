@@ -314,13 +314,20 @@ function refreshimages(){
     url = "http://"+$('input#url').val()+"/getimage/"+image+"/"+camid;
     $.getJSON(url, function(data) {
     idx = 0;
+    $('.tagimages').css("background-image","url('nodata.png')");
     if ('track' in data) {
         if ((data['track']!=null) && (data['track'].length>0)) {
             console.log(data['track']);
-            
-            for (var i=0;i<data['track'].length;i++){
-                $('#tagimage'+idx).css("background-image",convertSimpleJSONtoImageURL(data['track'][i]['patch'])); 
-                idx = idx + 1;
+            $('#trackingresults').text("");
+            for (var i=0;i<data['track'].length;i++){                
+                if (data['track'][i]['prediction']<$('input#detectthreshold').val()) {
+                    console.log();
+                    $('#tagimage'+idx).css("background-image",convertSimpleJSONtoImageURL(data['track'][i]['patch']));
+                    $('#trackingresults').append("[focus:"+data['track'][i]['focus'][2].toFixed(2)+"(err="+data['track'][i]['focusfiterr'].toFixed(2)+")");
+                    rgb = data['track'][i]['rgb'];
+                    $('#trackingresults').append(", RGB:"+rgb[0].toFixed(0)+","+rgb[1].toFixed(0)+","+rgb[2].toFixed(0)+"]");
+                    idx = idx + 1;
+                }
             }
         }
     }

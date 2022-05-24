@@ -27,25 +27,33 @@ def prettyprinttimes(timemsgs):
 import numpy.polynomial.polynomial as poly
     
 class TagAnalysis():
-    def __init__(self, img, track):
+    def __init__(self, track):
         """
         Pass the photo and the 'track' dictonary (containing an 'x' and 'y' element in the dictionary).
         """
         x = track['x']
         y = track['y']
+
         #round to even pixels to ensure Bayer structure remains intact
-        self.x = (x//2)*2
-        self.y = (y//2)*2
+        #self.x = (x//2)*2
+        #self.y = (y//2)*2
         #self.img = img
         
         #TODO Assert the x and y are all in the img
-        self.tagimg = img[y-4:y+4,x-4:x+4]
+        #self.tagimg = img[y-self.tagbox:y+self.tagbox,x-self.tagbox:x+self.tagbox]
+        self.tagimg = track['patch']#'img[y-self.tagbox:y+self.tagbox,x-self.tagbox:x+self.tagbox]
+        self.tagimg = self.tagimg[14:-14,14:-14] #bit smaller.
+        if y%2==1:
+            self.tagimg = self.tagimg[1:,:]
+        if x%2==1:
+            self.tagimg = self.tagimg[:,1:]
+
 
     def computefast(self):
         rgb = []
         rgb.append(np.mean(self.tagimg[::2,::2]))
         rgb.append(np.mean(self.tagimg[1::2,::2])/2+np.mean(self.tagimg[::2,1::2])/2)
-        rgb.append(np.mean(self.tagimg[1::2,1::2]))        
+        rgb.append(np.mean(self.tagimg[1::2,1::2]))       
         return np.array(rgb),np.zeros(3)
         
     def fitfocus(self):
@@ -60,7 +68,7 @@ class TagAnalysis():
         meanimg = meanimg[~np.isnan(meanimg)]
         if len(xs)<2:
             self.focuscoefs = [0,0,0]
-            return [0,0,0]
+            return np.array([0,0,0]), 0
         
         logmeans = np.log(meanimg)
         coefs = poly.polyfit(xs, logmeans, 2)
@@ -100,7 +108,6 @@ class Tracking(Configurable):
                 continue
             if photoitem['record']['endofset']:
                 if self.debug: print("Starting Tracking...")
-                
                 if self.track.value>0:
                     contact, found, _ = retrodetect.detectcontact(self.photolist,len(self.photolist)-1)#,thresholds=[10,3,7])
                     recordtime(photoitem,'retrodetect algorithm complete')
@@ -114,10 +121,15 @@ class Tracking(Configurable):
                 
                 photoitem['track']=contact
                 
-                for t in photo['track']:
-                    ta = TagAnalysis(photoitem['img'],t)
-                    t['rbg'] = ta.computefast()
-                    t['focus'] = ta.fitfocus()
+                if contact is not None:
+                    for t in photoitem['track']:
+                        ta = TagAnalysis(t)
+                        rgb,rgbsd = ta.computefast()
+                        t['rgb'] = rgb.tolist()
+                        t['rgbsd'] = rgbsd.tolist()
+                        coefs,err = ta.fitfocus()
+                        t['focus'] = coefs.tolist()
+                        t['focusfiterr'] = err
                 recordtime(photoitem,'storing photoitem on photo_queue')                
                 self.photo_queue.put(photoitem,index)                
                 #TODO loop backwards until we reach earlier endofset
