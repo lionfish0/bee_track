@@ -126,7 +126,7 @@ setInterval(function(){
                     //confident = confident | data['track'][i]['confident']; //true if any of the patches is true
                     console.log(data['track'][i]['prediction']);
                     console.log($('input#detectthreshold').val());
-                    confident = confident | (data['track'][i]['prediction']<$('input#detectthreshold').val()); //true if any of the predictions=0 (which is detected)
+                    confident = confident | reachthreshold(data['track'][i]) //['prediction']<$('input#detectthreshold').val()); //true if any of the predictions=0 (which is detected)
                 }
                 if (confident) {$('#beep2s').get(0).play();}
                 image = data['index']-1
@@ -231,6 +231,23 @@ function convertSimpleJSONtoImageURL(img) {
     return "url('"+canvas.toDataURL()+"')";
 }
 
+function reachthreshold(track) {
+  //does track reach threshold?
+  code = $('input[name="thresholdtype"]:checked').val();
+  if (code==0) {
+    if (track['prediction']<$('input#detectthreshold').val()) {
+      return True;
+    }
+    else {return False;}
+  }
+  if (code==1) {
+    if (track['centre']>$('input#detectthreshold').val()) {
+      return True;
+    }
+    else {return False;}
+  }
+
+}
 function convertJSONtoImageURL(data) {
     img = data['photo']
     record = data['record']
@@ -277,7 +294,7 @@ function convertJSONtoImageURL(data) {
                 drawcrosshair(imdata,data['track'][i]['x'],data['track'][i]['y'],Math.round(-data['track'][i]['prediction']*10),blocksize,width,height,255,255,0);
                 console.log(data['track'][i]['prediction'])
                 drawcircle(imdata,data['track'][i]['x'],data['track'][i]['y'],5,blocksize,width,height,0,0,255);
-                if (data['track'][i]['prediction']<$('input#detectthreshold').val()) {
+                if (reachthreshold(data['track'][i]) {
                     drawcircle(imdata,data['track'][i]['x'],data['track'][i]['y'],15,blocksize,width,height,255,255,0);
                 }
             }
@@ -320,7 +337,7 @@ function refreshimages(){
             console.log(data['track']);
             $('#trackingresults').text("");
             for (var i=0;i<data['track'].length;i++){                
-                if (data['track'][i]['prediction']<$('input#detectthreshold').val()) {
+                if (reachthreshold(data['track'][i])) {
                     console.log();
                     $('#tagimage'+idx).css("background-image",convertSimpleJSONtoImageURL(data['track'][i]['patch']));
                     $('#trackingresults').append("[focus:"+data['track'][i]['focus'][2].toFixed(2)+"(err="+data['track'][i]['focusfiterr'].toFixed(2)+")");
