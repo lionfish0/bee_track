@@ -236,15 +236,15 @@ function reachthreshold(track) {
   code = $('input[name="thresholdtype"]:checked').val();
   if (code==0) {
     if (track['prediction']<$('input#detectthreshold').val()) {
-      return True;
+      return true;
     }
-    else {return False;}
+    else {return false;}
   }
   if (code==1) {
     if (track['centre']>$('input#detectthreshold').val()) {
-      return True;
+      return true;
     }
-    else {return False;}
+    else {return false;}
   }
 
 }
@@ -294,7 +294,7 @@ function convertJSONtoImageURL(data) {
                 drawcrosshair(imdata,data['track'][i]['x'],data['track'][i]['y'],Math.round(-data['track'][i]['prediction']*10),blocksize,width,height,255,255,0);
                 console.log(data['track'][i]['prediction'])
                 drawcircle(imdata,data['track'][i]['x'],data['track'][i]['y'],5,blocksize,width,height,0,0,255);
-                if (reachthreshold(data['track'][i]) {
+                if (reachthreshold(data['track'][i])) {
                     drawcircle(imdata,data['track'][i]['x'],data['track'][i]['y'],15,blocksize,width,height,255,255,0);
                 }
             }
