@@ -92,7 +92,7 @@ def getbattery():
 @app.route('/config/<string:instruction>/<int:value>')
 def configcam(instruction,value):
     for cam in cameras:
-        came.config_camera_queue.put([instruction,value])
+        cam.config_camera_queue.put([instruction,value])
     return "Done"
     
 @app.route('/getmessage')
