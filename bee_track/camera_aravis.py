@@ -43,12 +43,13 @@ class Aravis_Camera(Camera):
         #self.aravis_camera.set_region(0,0,self.width,self.height) #2064x1544        
         #self.aravis_camera.set_binning(2,2)
         
-
+        print("CAMERA NETWORK CONFIGURATION")
         self.aravis_camera.gv_set_packet_size(8000)
-        self.aravis_camera.gv_set_packet_delay(40000) #np.random.randint(10000))
-        print("!!!!")
+        #psize = self.aravis_camera.gv_auto_packet_size()
+        #print("Packet size: %d" % psize)
+        self.aravis_camera.gv_set_packet_delay(80000) #(40000) #np.random.randint(10000))
+        print("Packet Delay")
         print(self.aravis_camera.gv_get_packet_delay())
-        
         #self.aravis_camera.gv_set_stream_options(Aravis.GvStreamOption.NONE)
         
         aravis_device = self.aravis_camera.get_device();
@@ -58,14 +59,24 @@ class Aravis_Camera(Camera):
         
         if 'BayerRG8' in availpixelformats:
             aravis_device.set_string_feature_value("PixelFormat", "BayerRG8")    
-        
-        #Mono8, RGB8Packed, BayerRG8
+
+        self.colour_camera.value = False
+        self.return_full_colour.value = False   
+        self.pixelformatstring = self.aravis_camera.get_pixel_format_as_string()
+        print("-----")
+        print("!!"+self.aravis_camera.get_pixel_format_as_string()+"!!")
+        print("-----")        
+        print(self.aravis_camera.get_pixel_format_as_string()=='BayerRG8')
+        if self.aravis_camera.get_pixel_format_as_string()=='BayerRG8':
+            print("Bayer... colour_camera=TRUE, ReturnsFullColour=False")
+            self.colour_camera.value = True
+            self.return_full_colour.value = False
+            
         if self.aravis_camera.get_pixel_format_as_string()=='RGB8Packed':
-            print("Colour")
-            self.colour_camera = True
-        else:
-            print("Monochrome")
-            self.colour_camera = False
+            print("RGB8... colour_camera=TRUE, ReturnsFullColour=True")        
+            self.colour_camera.value = True
+            self.return_full_colour.value = True
+
 
         #Trying to get it working...
         #aravis_device.set_string_feature_value("LineSelector", "Line0")
@@ -124,6 +135,8 @@ class Aravis_Camera(Camera):
               
         self.payload = self.aravis_camera.get_payload()
         self.stream = self.aravis_camera.create_stream(None, None)
+        self.stream.set_property('packet-timeout',40000)
+        self.stream.set_property('packet-request-ratio',0.25)
         
         ###
         
@@ -161,8 +174,8 @@ class Aravis_Camera(Camera):
     def camera_config_worker(self):
         while True:
             config = self.config_camera_queue.get()
-            if self.debug: print("Got:")
-            if self.debug: print(config)
+            print("Got:")
+            print(config)
             if config[0] == 'exposure':
                 self.aravis_camera.set_exposure_time(config[1])
             if config[0] == 'delay':
@@ -205,13 +218,16 @@ class Aravis_Camera(Camera):
             self.stream.push_buffer(buffer) #return it to the buffer
             gc.collect()
             return None
+        print("Stream statistics")
+        print(self.stream.get_statistics())
         if self.debug: print(self.cam_id,"buffer ok")
         if getraw:
             raw = np.frombuffer(buffer.get_data(),dtype=np.uint8)#no type conversion!
         else:
             raw = np.frombuffer(buffer.get_data(),dtype=np.uint8).astype(float)        
         self.stream.push_buffer(buffer)
-        if self.colour_camera:
+        if bool(self.return_full_colour.value):
+            print(">>>")
             return np.reshape(raw,[self.height,self.width,3])
         else:
             return np.reshape(raw,[self.height,self.width])

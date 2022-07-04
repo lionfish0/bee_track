@@ -83,14 +83,16 @@ def ascii_draw(mat):
         msg+=''.join(symbols[mat][i])+"\n"
     return msg
 
+it = 0
 while (True):
-	camera.software_trigger()
-	image = stream.pop_buffer ()
-	if image:
-		#print(image.get_status())
-		raw = np.frombuffer(image.get_data(),dtype=np.uint8).astype(float).reshape(2048,1536) 
-                print(ascii_draw(raw[::20,::12]))
-		stream.push_buffer (image)
+    camera.software_trigger()
+    image = stream.pop_buffer ()
+    if image:
+        if it%4==0:
+            raw = np.frombuffer(image.get_data(),dtype=np.uint8).astype(float).reshape(2048,1536) 
+            print(ascii_draw(raw[::20,::12]))
+        stream.push_buffer (image)
+        it+=1
 
 print ("Stop acquisition")
 

@@ -47,7 +47,8 @@ class Camera(Configurable):
         self.fastqueue = Value('b',False) ###THIS WILL STOP PROCESSING
         self.test = Value('b',False)
         self.cam_trigger = cam_trigger
-        self.colour_camera = False
+        self.colour_camera = Value('b',False)
+        self.return_full_colour = Value('b',False) #if it returns RGB or just raw data.
         self.cam_id = cam_id
         self.config_camera_queue = Queue()
         self.info = False
@@ -109,7 +110,7 @@ class Camera(Configurable):
             
             photo_object = {'index':self.index.value,'record':rec}
             
-            if self.colour_camera:
+            if bool(self.return_full_colour.value):
                 if self.debug: print('generating greyscale copy at %s' % (datetime.datetime.now().strftime("%Y%m%d_%H:%M:%S.%f")))
                 colorphoto = photo
                 if photo is not None:
