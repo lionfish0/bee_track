@@ -24,6 +24,7 @@ def scale(v):
     return p
     
 def read_batteries():
+    scaleval = 0.0164
     # Open SPI bus
     spi = spidev.SpiDev()
     spi.open(0,0)
@@ -35,8 +36,8 @@ def read_batteries():
     chB = ReadChannel(spi,6)
     chA = ReadChannel(spi,7)
     #return ch6, ch7, ch6*0.016, ch7*0.016
-    if (scale(chA*0.016437)<0) or (scale(chB*0.016437)<0):
+    if (scale(chA*scaleval)<0) or (scale(chB*scaleval)<0):
         alert = 'low! '
     else:
         alert = ''
-    return "%sA:%0.2f (%d%%), B:%0.2f (%d%%)" % (alert,chA*0.016437,scale(chA*0.016437), chB*0.016437, scale(chB*0.016437)) #0.016*1.027322861
+    return "%sA:%0.2f (%d%%), B:%0.2f (%d%%)" % (alert,chA*scaleval,scale(chA*scaleval), chB*scaleval, scale(chB*scaleval)) #0.016*1.027322861

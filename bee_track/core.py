@@ -91,7 +91,8 @@ def getbattery():
     
 @app.route('/config/<string:instruction>/<int:value>')
 def configcam(instruction,value):
-    cameras[0].config_camera_queue.put([instruction,value])
+    for cam in cameras:
+        cam.config_camera_queue.put([instruction,value])
     return "Done"
     
 @app.route('/getmessage')
@@ -125,14 +126,14 @@ def share_ip():
     ipaddr = get_ip()
     try:
         print("Trying to get our ID")
-        id = open('device_id.txt','r').read()
+        devid = open('device_id.txt','r').read()
     except FileNotFoundError:
         print("Failed to find ID")
-        id = '9999'
-    print("Using ID: %s" % id)
+        devid = '9999'
+    print("Using ID: %s" % devid)
     try:
         print("Trying to access remote server")
-        url = 'http://michaeltsmith.org.uk:5000/set/%s/%s' % (id,ipaddr)
+        url = 'http://michaeltsmith.org.uk:5000/set/%s/%s' % (devid.strip(),ipaddr)
         print(url)
         req.get(url,timeout=10) #tries to share IP address on server
         #
@@ -181,9 +182,20 @@ def startup():
         cameras.append(camera)
         t = Process(target=camera.worker)
         t.start()
+        import time
+        time.sleep(1)
     assert len(cameras)>0
-    #we'll make the tracking camera the first one in the list    
-    tracking = Tracking(message_queue,cameras[0].photo_queue)
+    #we'll make the tracking camera the first greyscale one if there is one, otherwise the 0th one.
+    usecam=cameras[0]
+    print("looking for camera to use for tracking...")
+    for cam in cameras:
+        print("Cam...")
+        print(cam.colour_camera.value)
+        if cam.colour_camera.value==0:
+            print("Not colour cam")
+            usecam = cam
+            #break
+    tracking = Tracking(message_queue,cam.photo_queue)
     t = Process(target=tracking.worker)
     t.start()
     
@@ -204,9 +216,9 @@ def start():
         camera.index.value = nextindex
     trigger.index.value = nextindex
 
-    for camera in cameras:
-        print(camera.index.value)
-    print(trigger.index.value)
+    #for camera in cameras:
+    #    print(camera.index.value)
+    #print(trigger.index.value)
 
     trigger.run.set()
     return "Collection Started"
@@ -314,17 +326,26 @@ def lowresmaximg(img,blocksize=10):
 @app.route('/getimagecount')
 def getimagecount():
     try:
-        #return str(camera.index.value) #camera.photo_queue.len())
-        return str(cameras[0].photo_queue.len())
+        return str(cameras[0].index.value-1) #gets index of current image...
+        #return str(cameras[0].photo_queue.len())
     except Empty:
         return "No items"
 
+def getimagewithindex(photo_queue,idx):
+    for i in range(photo_queue.len()-1,-1,-1):
+        item = photo_queue.read(i)
+        if item is None: continue
+        if item['index']==idx:
+            return item
+    return None
+    
 @app.route('/getimage/<int:number>/<int:camera_id>')
 @app.route('/getimage/<int:number>')
 def getimage(number,camera_id=0):
     #global camera
     #global message_queue
-    photoitem = cameras[camera_id].photo_queue.read(number)
+    #photoitem = cameras[camera_id].photo_queue.read(number)
+    photoitem = getimagewithindex(cameras[camera_id].photo_queue,number)
     if photoitem is None:
         message_queue.put("Photo %d doesn't exist" % number)
         return "Failed"
@@ -392,7 +413,8 @@ def addtestdata():
 @app.route('/getimagecentre/<int:number>')
 def getimagecentre(number,camera_id=0):
     #global camera
-    photoitem = cameras[camera_id].photo_queue.read(number)
+    #photoitem = cameras[camera_id].photo_queue.read(number)
+    photoitem = getimagewithindex(cameras[camera_id].photo_queue,number)
     if photoitem is None:
         #global message_queue
         message_queue.put("Photo %d doesn't exist" % number)

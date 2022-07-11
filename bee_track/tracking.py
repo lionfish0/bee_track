@@ -151,7 +151,10 @@ class Tracking(Configurable):
                 #the reading & putting it back is really slow. Maybe just save the track info elsewhere?
                 if self.track.value>0:                    
                     oldphotoitem = self.photo_queue.read(index-1)
-                    oldphotoitem['track']=contact
+                    
+                    if oldphotoitem is not None:
+                        oldphotoitem['track'] = contact
+
                     self.photo_queue.put(oldphotoitem,index-1)
 
                     
