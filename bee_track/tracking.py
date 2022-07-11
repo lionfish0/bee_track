@@ -30,6 +30,8 @@ class TagAnalysis():
     def __init__(self, track):
         """
         Pass the photo and the 'track' dictonary (containing an 'x' and 'y' element in the dictionary).
+        
+        TODO: Assume patch is 40x40
         """
         x = track['x']
         y = track['y']
@@ -78,6 +80,15 @@ class TagAnalysis():
         preds = poly.polyval(xs, coefs)
         err = np.sum((preds - logmeans)**2)/np.sum((np.mean(logmeans)-logmeans)**2)
         return coefs, err
+             
+class TagAnalysisFromImage(TagAnalysis):
+    def __init__(self, img, tagloc):
+        
+        track = {}
+        track['x'] = tagloc[0]
+        track['y'] = tagloc[1]
+        track['patch'] = img[tagloc[1]-20:tagloc[1]+20,tagloc[0]-20:tagloc[0]+20]
+        super().__init__(track)
                   
 class Tracking(Configurable):
     def __init__(self,message_queue,photo_queue):
