@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link rel="stylesheet" type="text/css" href="style.css">
+<head>
+ <script src="jquery-3.3.1.min.js"></script>
+
+</head>
+<body>
+
+<button id="last">LAST</button>
+<button id="next">NEXT</button>
+<button id="last10">LAST10</button>
+<button id="next10">NEXT10</button>
+<button id="reset">RESET</button>
+<button id="save">SAVE</button>
+Image:<input id="imagenum" value="0" size=4 /></br>. Date/time string hh:mm:ss: <input id="datetime" value="0" size=40 /><button id="goto">GO TO</button>  
+<button id="detectrange">Run Detect on next 50 images</button>  Location: <span id="locationstring"></span></br>
+Filename:<span id="filename">_</span><br/>
+Track:<input type='checkbox' id='track'></input>
+Pixel value scaling, max:<input id="scaletext" value="10"></input><span id="loc">__</span>. Port:<input id="port" value="5000"></input>. Cam:<input type="radio" name="cam" value="0" checked="checked" id="0">1</input>,<input type="radio" name="cam" value="1" id="1">2</input>,<input type="radio" name="cam" value="2" id="2">3</input>,<input type="radio" name="cam" value="3" id="3">4</input>,<input type="radio" name="cam" value="4" id="4">5</input>,<input type="radio" name="cam" value="5" id="5">6</input>.<br/> Internal Cam:<input type="radio" name="cam" value="internal0" checked="checked" id="internal0">1</input>,<input type="radio" name="cam" value="internal1" id="internal1">2</input></br>
+<div>
+<table>
+<tr><td>r</td><td>- reset zoom</td></tr>
+<tr><td>n</td><td>- next image +1</td></tr>
+<tr><td>l</td><td>- last image -1</td></tr>
+<tr><td>shift-N</td><td>- next image +10</td></tr>
+<tr><td>L</td><td>- last image -10</td></tr>
+<tr><td>a</td><td>- next camera</td></tr>
+<tr><td>z</td><td>- last camera</td></tr>
+<tr><td>left click</td><td>- zoom in</td></tr>
+<tr><td>  (with shift)</td><td>- save marker</td></tr>
+<tr><td>middle click</td><td>- save  bee location</td></tr>
+<tr><td>  (with shift)</td><td>- save uncertain location</td></tr>
+<tr><td>d</td><td>- delete all labels in image</td></tr>
+<tr><td>s</td><td>- process Stick #tags<input id="sticknum" value="6" size=3 /></td></tr>
+</table>
+</div>
+<canvas id="image2" width="1024px" height="768px" style="z-index:1;" ></canvas>
+<div id="image" style="style="z-index:2;" ></div>
+ <script src="label.js"></script>
+</body>
+

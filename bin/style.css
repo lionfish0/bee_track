@@ -1,0 +1,23 @@
+#image {
+    position:absolute;
+    left:350px;
+    top:120px;
+    width:1024px;
+    height:768px;
+    background-size: 1024px 768px;
+    background-image:url("nodata.png");
+}
+
+#image2 {
+    position:absolute;
+    left:350px;
+    top:120px;
+    width:1024px;
+    height:768px;
+    background-size: 1024px 768px;
+}
+
+body {
+    background-color: black;
+    color: white;
+}
