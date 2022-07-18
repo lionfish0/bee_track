@@ -171,7 +171,7 @@ class Camera(Configurable):
                     if self.debug: print('finished save at %s' % (datetime.datetime.now().strftime("%Y%m%d_%H:%M:%S.%f")))                    
                     if self.info: print("Saved photo as %s" % filename)
                 else:
-                    filename = 'photo_object_%s.np' % (datetime.datetime.now().strftime("%Y%m%d_%H:%M:%S.%f"))                    
+                    filename = 'photo_object_%s_%s.np' % (camidstr,datetime.datetime.now().strftime("%Y%m%d_%H:%M:%S.%f"))                   
                     self.message_queue.put("FAILED TO FIND ASSOCIATED RECORD! SAVED AS %s")
                     photo_object['filename'] = filename
                     pickle.dump(photo_object,open(filename,'wb'))
