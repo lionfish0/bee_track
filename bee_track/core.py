@@ -290,7 +290,23 @@ def zip():
     print("Started")
     return "Zipping Started"
 
+from threading import Thread
+from time import sleep
 
+def threaded_function():
+    while (True):
+        print("running auto zip")
+        zip()
+        sleep(600)
+
+thread = Thread(target = threaded_function)
+thread.start()
+
+#import threading
+#ticker = threading.Event()
+#while not ticker.wait(600):
+#    print("AUTO ZIP")
+#    zip()
 
 @app.route('/update')
 def update():
