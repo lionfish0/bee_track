@@ -293,13 +293,13 @@ def zip():
 from threading import Thread
 from time import sleep
 
-def threaded_function(arg):
+def threaded_function():
     while (True):
         print("running auto zip")
         zip()
-        sleep(6000)
+        sleep(600)
 
-thread = Thread(target = threaded_function, args = (10, ))
+thread = Thread(target = threaded_function)
 thread.start()
 
 #import threading
