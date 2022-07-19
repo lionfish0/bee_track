@@ -263,20 +263,23 @@ def save_pos(cam,internalcam,number,x,y,confidence,label=None):
         data = json.load(open(beetrackfn,'r'))
     except FileNotFoundError:
         data = {}
-    cam = str(cam)
-    number = str(number)
-    if cam not in data:
-        data[cam] = {}
-    if number not in data[cam]:
-        data[cam][number] = []
+    camst = str(cam)
+    numberst = str(number)
+    if camst not in data:
+        data[camst] = {}
+    if numberst not in data[camst]:
+        data[camst][numberst] = []
     newrecord = {'x':x,'y':y,'confidence':confidence,'fn':fn}
     if label is not None: newrecord['label'] = label
-    data[cam][number].append(newrecord);
+    shift = getcachedshift(cam,internalcam,number)
+    if shift is not None:
+        newrecord['shift'] = [int(shift[0]),int(shift[1])];
+    data[camst][numberst].append(newrecord);
     json.dump(data,open(beetrackfn,'w'),indent=4)
     
-@app.route('/savepos/<int:cam>/<int:internalcam>/<int:number>/<int:x>/<int:y>/<int:confidence>')
-def savepos(cam,internalcam,number,x,y,confidence):
-    save_pos(cam,internalcam,number,x,y,confidence)
+@app.route('/savepos/<int:cam>/<int:internalcam>/<int:number>/<int:x>/<int:y>/<int:confidence>/<string:label>')
+def savepos(cam,internalcam,number,x,y,confidence,label):
+    save_pos(cam,internalcam,number,x,y,confidence,label)
     return "done"
     
 @app.route('/deleteallpos/<int:cam>/<int:internalcam>/<int:number>')
@@ -345,7 +348,7 @@ def stick(cam,internalcam,number,numtags):
         print(img[int(y-box):int(y+box),int(x-box):int(x+box)])
         save_pos(cam,number,brightloc[0],brightloc[1],10,'sticktag%d' % i)
     return "done"
-     
+
 def load_img(fn):
     try:
         rawdata = np.load(fn,allow_pickle=True)
@@ -359,17 +362,49 @@ def load_img(fn):
         data = rawdata['record']
     return n,img,data
     
+from retrodetect import getshift, shiftimg
 
-    
+def getcachedshift(cam,internalcam,number):
+
+    path = pathtoimgs[cam]
+    cachefile = 'cache/shift_cache_%s.pkl' % (gethash(path.encode("utf-8")))
+    if internalcam==0:
+        return None
+    try:
+        cache = pickle.load(open(cachefile,'rb'))
+    except FileNotFoundError:
+        cache = {}
+    if cam in cache:
+        if number//20 in cache[cam]:
+            return cache[cam][number//20]
+    else:
+        cache[cam] = {}
+        
+    fn = getimgfilename(cam,internalcam,number)
+    n,img,data = load_img(fn)
+    fn = getimgfilename(cam,0,number) #get 0th internal cam -> should be greyscale...
+    grey_n,grey_img,grey_data = load_img(fn)  
+    shift = getshift(grey_img,img,step=1)
+    shift[0]-=2 #trying to correct for difference in camera locations!
+    cache[cam][number//20] = shift
+    pickle.dump(cache,open(cachefile,'wb'))
+    return shift
+
 @app.route('/getimage/<int:cam>/<int:internalcam>/<int:number>/<int:x1>/<int:y1>/<int:x2>/<int:y2>')
 def getimage(cam,internalcam,number,x1,y1,x2,y2):
     fn = getimgfilename(cam,internalcam,number)
-    print("LOADING...")
+
     print(fn)
     n,img,data = load_img(fn)
+    
+
     if img is None:
         return jsonify({'index':-1,'photo':'failed','record':'failed'})
-        
+    
+    if internalcam>0:
+        shift = getcachedshift(cam,internalcam,number)
+        img = shiftimg(img,shift,0)
+            
     #fns = sorted(glob('%s/*.np'%(pathtoimgs)))
     #if len(fns)==0:
     #    return "Image not found"

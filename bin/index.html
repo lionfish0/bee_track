@@ -17,7 +17,9 @@ Image:<input id="imagenum" value="0" size=4 /></br>. Date/time string hh:mm:ss: 
 <button id="detectrange">Run Detect on next 50 images</button>  Location: <span id="locationstring"></span></br>
 Filename:<span id="filename">_</span><br/>
 Track:<input type='checkbox' id='track'></input>
-Pixel value scaling, max:<input id="scaletext" value="10"></input><span id="loc">__</span>. Port:<input id="port" value="5000"></input>. Cam:<input type="radio" name="cam" value="0" checked="checked" id="0">1</input>,<input type="radio" name="cam" value="1" id="1">2</input>,<input type="radio" name="cam" value="2" id="2">3</input>,<input type="radio" name="cam" value="3" id="3">4</input>,<input type="radio" name="cam" value="4" id="4">5</input>,<input type="radio" name="cam" value="5" id="5">6</input>.<br/> Internal Cam:<input type="radio" name="cam" value="internal0" checked="checked" id="internal0">1</input>,<input type="radio" name="cam" value="internal1" id="internal1">2</input></br>
+Pixel value scaling, max:<input id="scaletext" value="10"></input><span id="loc">__</span>. Port:<input id="port" value="5000"></input>.
+Cam:<input type="radio" name="cam" value="0" checked="checked" id="0">1</input>,<input type="radio" name="cam" value="1" id="1">2</input>,<input type="radio" name="cam" value="2" id="2">3</input>,<input type="radio" name="cam" value="3" id="3">4</input>,<input type="radio" name="cam" value="4" id="4">5</input>,<input type="radio" name="cam" value="5" id="5">6</input>.<br/>
+Internal Cam:<input type="radio" name="internalcam" value="internal0" checked="checked" id="internal0">1</input>,<input type="radio" name="internalcam" value="internal1" id="internal1">2</input></br>
 <div>
 <table>
 <tr><td>r</td><td>- reset zoom</td></tr>
@@ -31,6 +33,7 @@ Pixel value scaling, max:<input id="scaletext" value="10"></input><span id="loc"
 <tr><td>  (with shift)</td><td>- save marker</td></tr>
 <tr><td>middle click</td><td>- save  bee location</td></tr>
 <tr><td>  (with shift)</td><td>- save uncertain location</td></tr>
+<tr><td>  (with ctrl)</td><td>- save control event</td></tr>
 <tr><td>d</td><td>- delete all labels in image</td></tr>
 <tr><td>s</td><td>- process Stick #tags<input id="sticknum" value="6" size=3 /></td></tr>
 </table>

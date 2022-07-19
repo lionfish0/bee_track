@@ -172,8 +172,16 @@ $(document).keypress(function(e) {
   if(e.which == 108) {$('button#last').trigger('click');}    
   if(e.which == 76) {$('button#last10').trigger('click');}
   if(e.which == 114) {$('button#reset').trigger('click');}  
-  if(e.which == 49) {$(('input:radio#internal0')).trigger('click');}  
-  if(e.which == 50) {$(('input:radio#internal1')).trigger('click');}    
+  if(e.which == 113) {
+    if (internalcam==0)
+    { 
+      $(('input:radio#internal1')).trigger('click');
+    }
+    else
+    {
+      $(('input:radio#internal0')).trigger('click');    
+    }
+  }  
   if(e.which == 97) {$(('input:radio#'+(cam+1))).trigger('click');}
   if(e.which == 122) {$(('input:radio#'+(cam-1))).trigger('click');}
   if(e.which == 100) {
@@ -312,13 +320,17 @@ $('button.refreshimages').click(function(){refreshimages();});
 //});
 
 shifted = false
+controlpressed = false
 $(document).on('keyup keydown', function(e){shifted = e.shiftKey} );
+$(document).on('keyup keydown', function(e){controlpressed = e.ctrlKey} );
     
 $('#image2').mousedown(function(e){
     if (event.which==2) {
-        if (shifted) {confidence=50;} else {confidence=100;}        
+        if (shifted) {confidence=50;} else {confidence=100;}   
+        label = "none";     
+        if (controlpressed) {label = prompt("Enter label", "none");}
         console.log("SAVING:"+chosenloc[0]+"/"+chosenloc[1]);
-        url = "http://127.0.0.1:"+$('input#port').val()+"/savepos/"+cam+'/'+internalcam+'/'+image+"/"+Math.round(chosenloc[0])+"/"+Math.round(chosenloc[1])+"/"+confidence;
+        url = "http://127.0.0.1:"+$('input#port').val()+"/savepos/"+cam+'/'+internalcam+'/'+image+"/"+Math.round(chosenloc[0])+"/"+Math.round(chosenloc[1])+"/"+confidence+"/"+label;
         $.getJSON(url, function(data) {}); 
         //console.log("!"+chosenloc[0]+" "+chosenloc[1]);
         //refreshimages();
