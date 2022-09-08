@@ -398,6 +398,17 @@ $('button#setinterval').click(function(){
       error: function(jqXHR, status, errorThrown){msg('Set Error');}
     });
 });
+$('button#setdelaystart').click(function(){
+    msg('Setting...');
+    url = "http://"+$('input#url').val()+"/set/trigger/ds/"+$('input#delaystart').val();
+    $.ajax({
+      url: url,
+      success: function(data, status, jqXHR){
+        msg('Set');
+      },
+      error: function(jqXHR, status, errorThrown){msg('Set Error');}
+    });
+});
 
 $('button#reboot').click(function(){
     msg('Rebooting...');

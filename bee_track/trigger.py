@@ -22,6 +22,7 @@ class Trigger(Configurable):
         self.flashselection.append(2)
         self.flashselection.append(3)
         self.t = multiprocessing.Value('d',t)
+        self.ds = multiprocessing.Value('d',0)
         self.flashseq = multiprocessing.Value('i',0) #0 = flash all, 1 = flash 2 at a time, 1 = flash in sequence,
         self.skipnoflashes = multiprocessing.Value('i',0) #how many to skip
         self.preptime = 0.02
@@ -102,6 +103,8 @@ class Trigger(Configurable):
         skipcount = 0
         while (True):
             self.run.wait()
+            delaystart = self.ds.value*self.t.value
+            time.sleep(delaystart);
             skipcount+=1
             skipnoflashphoto = (skipcount<=self.skipnoflashes.value)
             self.trigger_camera(True,skipnoflashphoto)
@@ -109,6 +112,6 @@ class Trigger(Configurable):
                 self.trigger_camera(False,True)
                 skipcount = 0
 
-                time.sleep(self.t.value-self.triggertime*2-self.preptime*2)
+                time.sleep(self.t.value-self.triggertime*2-self.preptime*2-delaystart)
             else:
-                time.sleep(self.t.value-self.triggertime-self.preptime)
+                time.sleep(self.t.value-self.triggertime-self.preptime-delaystart)
