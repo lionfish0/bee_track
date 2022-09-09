@@ -1,8 +1,9 @@
 from flask import Flask, jsonify
+from flask_cors import CORS
 import datetime
 
 app = Flask(__name__)
-
+CORS(app)
 records = {}
 
 @app.route("/set/<int:systemid>/<string:ipaddress>")
@@ -19,8 +20,11 @@ def get():
 
 @app.route("/get")
 def hello_world():
+    with open('jquery-3.6.1.min.js', 'r') as file:
+        jqscript = file.read()
     output = ""
-    output+= """<html><head><script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    output+= '<html><head><script type="text/javascript">'+jqscript+'</script>'
+    output += """
     <script type="text/javascript">
 $(document).ready(function(){
 
@@ -28,10 +32,11 @@ $(document).ready(function(){
    $('a.interface').each(function(i) {
          href = $(this).text();
          url = "http://"+href+":5000/"+cmd;
-         $.ajax({
-              url: url,
-              success: function(data, status, jqXHR){}
-          });
+         window.location.href = url;
+         //$.ajax({
+         //     url: url,
+         //     success: function(data, status, jqXHR){}
+         // });
    })
  }
  
@@ -43,7 +48,7 @@ $(document).ready(function(){
    command('stop');
  });
  
- $('input#label').bind('input',function() {
+ $('#setlabel').click(function() {
    command("setlabel/a"+$('input#label').val());
  });
 
@@ -75,7 +80,9 @@ $(document).ready(function(){
 <input type='button' id='startall' value='start'></input><input type='button' id='stopall' value='stop'></input></body></html>
 <br />
 <br />
-label for file: <input id="label" value="" /><br/>
+label for file: <input id="label" value="" />
+<button id="setlabel">set</button><br/>
+<br />
 <br />
 Interval <input id="interval" value=3 size=2/> seconds
 <button id="setinterval">set</button><br/>
