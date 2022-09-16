@@ -296,7 +296,7 @@ from time import sleep
 def threaded_function():
     while (True):
         print("running auto zip")
-        zip()
+        #zip() #disabled
         sleep(600)
 
 thread = Thread(target = threaded_function)
