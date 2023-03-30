@@ -25,6 +25,7 @@ app = Flask(__name__)
 Compress(app)
 CORS(app)
 from glob import glob
+import pickle
 
 import logging
 log = logging.getLogger('werkzeug')
@@ -50,10 +51,21 @@ def setdatetime(timestring):
     os.system('sudo /bin/date -s %s' % d.strftime("%Y-%m-%dT%H:%M:%S"))
     return "system time set successfully"
 
+def addtoconfigvals(component,field,value):
+    try:
+        configvals = pickle.load(open('configvals.pkl','rb'))
+        if component not in configvals: configvals[component] = {}
+        if field not in configvals[component]: configvals[component][field] = value
+    except FileNotFoundError:
+        configvals = {}
+    pickle.dump(configvals,open('configvals.pkl','wb'))
+    
 @app.route('/set/<string:component>/<string:field>/<string:value>')
 def set(component,field,value):
     print(component,field,value)
     """TO DO: Secure?"""
+    addtoconfigvals(component,field,value)
+    
     comp = None
     if component=='camera': comp = cameras
     if component=='trigger': comp = [trigger]
@@ -64,7 +76,17 @@ def set(component,field,value):
     for c in comp:
         c.config_queue.put(['set',field,value])
     return "..."
-    
+
+
+def setfromconfigvals():
+    try:
+        configvals = pickle.load(open('configvals.pkl','rb'))
+        for component,fields in configvals.items():
+            for field,value in fields.items():
+                set(component,field,value)
+    except FileNotFoundError:
+        pass
+
 @app.route('/get/<string:component>/<string:field>')
 def get(component,field):
     print(component,field)
@@ -204,6 +226,7 @@ def startup():
     t.start()
     
     share_ip()
+    setfromconfigvals()
     return "startup successful"
     
 @app.route('/start')

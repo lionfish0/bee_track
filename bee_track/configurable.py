@@ -47,7 +47,6 @@ class Configurable():
                         setattr(self,command[1],type(v)(command[2]))
 
                     self.message_queue.put("Set %s to %s" % (command[1],command[2]))
-                    
 
                 except Exception as e:
                     self.message_queue.put("Failed to set:" + str(e))
