@@ -55,7 +55,8 @@ def addtoconfigvals(component,field,value):
     try:
         configvals = pickle.load(open('configvals.pkl','rb'))
         if component not in configvals: configvals[component] = {}
-        if field not in configvals[component]: configvals[component][field] = value
+        #if field not in configvals[component]:
+        configvals[component][field] = value
     except FileNotFoundError:
         configvals = {}
     pickle.dump(configvals,open('configvals.pkl','wb'))
