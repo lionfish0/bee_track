@@ -32,11 +32,11 @@ $(document).ready(function(){
    $('a.interface').each(function(i) {
          href = $(this).text();
          url = "http://"+href+":5000/"+cmd;
-         window.location.href = url;
-         //$.ajax({
-         //     url: url,
-         //     success: function(data, status, jqXHR){}
-         // });
+         //window.location.href = url;
+         $.ajax({
+              url: url,
+              success: function(data, status, jqXHR){}
+          });
    })
  }
  
