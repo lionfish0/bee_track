@@ -85,7 +85,7 @@ def setfromconfigvals():
         for component,fields in configvals.items():
             for field,value in fields.items():
                 set(component,field,value)
-    except FileNotFoundError:
+    except: # FileNotFoundError:
         pass
 
 @app.route('/get/<string:component>/<string:field>')
