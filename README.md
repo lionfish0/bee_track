@@ -12,12 +12,12 @@ Edit `/etc/wpa_supplicant/wpa_supplicant.conf`, enter:
 
     ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
     update_config=1
-
+    
     network={
         ssid="SSID"
         psk="PASSWORD"
     }
-
+    
     network={
         ssid="SSID"
         psk="PASSWORD"
@@ -28,7 +28,7 @@ Edit `/etc/wpa_supplicant/wpa_supplicant.conf`, enter:
 Download the aravis library:
 
     git clone https://github.com/AravisProject/aravis.git
-    
+
 Or donwload earlier version from
 http://ftp.gnome.org/pub/GNOME/sources/aravis/0.6/
 
@@ -39,7 +39,7 @@ then if you need the viewer (although I did find I had to split these installs).
 other stuff...
 
     sudo apt-get install gnome-common intltool valac libglib2.0-dev gobject-introspection libgirepository1.0-dev libgtk-3-dev libgnome-desktop-3-dev libcanberra-dev libgdata-dev libdbus-glib-1-dev libgstreamer1.0-dev libupower-glib-dev libxml2-dev
-   
+
 for a while now aravis has used meson for building...
 
     sudo pip3 install ninja meson
@@ -52,7 +52,7 @@ for a while now aravis has used meson for building...
     sudo ninja install
     cd .. #to aravis
     sudo ldconfig
-   
+
 (maybe see https://github.com/sightmachine/SimpleCV/wiki/Aravis-(Basler)-GigE-Camera-Install-Guide)
 
 Download this tool
@@ -67,7 +67,7 @@ Also to make numpy work:
 
     sudo apt install libatlas3-base
     sudo pip3 install numpy
-    
+
 Also:
 
     pip3 install scipy
@@ -81,3 +81,15 @@ Also:
     pip3 install -U flask-cors
     pip3 install mem_top
     pip3 install flask_compress
+
+# Architecture
+
+```mermaid
+flowchart LR
+user(("Mobile\nweb browser"))
+backend[API\nFlask app\nbee_track/core.py]
+frontend[Javascript GUI\nhttp.server\nwebinterface/]
+user --"HTTP 80" --> frontend
+frontend --"HTTP 5000"--> backend
+```
+
