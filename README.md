@@ -84,12 +84,28 @@ Also:
 
 # Architecture
 
+This is a simplified overview of the different parts of this system and how they communicate.
+
 ```mermaid
 flowchart LR
-user(("Mobile\nweb browser"))
+user(("Web\nbrowser"))
 backend[API\nFlask app\nbee_track/core.py]
 frontend[Javascript GUI\nhttp.server\nwebinterface/]
-user --"HTTP 80" --> frontend
-frontend --"HTTP 5000"--> backend
+user <--"HTTP 80" --> frontend
+frontend <--"HTTP 5000"--> backend
+```
+
+# Virtual environment
+
+These are instructions for running the API app on a virtual Raspberry Pi machine using [dockerpi](https://github.com/lukechilds/dockerpi).
+
+1. Install Docker
+2. Download the latest stable [Raspberry Pi OS Lite image](https://www.raspberrypi.com/software/operating-systems/)
+3. Decompress the image `unxz *.xz`
+4. Run a virtual machine (`p3` means Rasp. Pi version 3, which is under experimental support)
+
+```bash
+image_path="./2023-12-11-raspios-bookworm-arm64-lite.img"
+docker run -it -v $image_path:/sdcard/filesystem.img lukechilds/dockerpi:vm p3
 ```
 
