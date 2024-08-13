@@ -56,14 +56,14 @@ function convertJSONtoImageURL(data,drawcrosshairs) {
     }
     
     
-    if (image in tracking_data) {
+    if (image in tracking_data[cam]) {
         
 
-        tdata = tracking_data[image]
+        tdata = tracking_data[cam][image]
 
 
         for (var i=0;i<tdata['contact'].length;i++){
-            //console.log(tdata['contact'][i]['x'],tdata['contact'][i]['y'])
+
             drawscaledcrosshair(imdata,width,height,tdata['contact'][i]['x'],tdata['contact'][i]['y'],5,255,255,0)
             if (tdata['contact'][i]['prediction']<3) {
               drawscaledcrosshair(imdata,width,height,tdata['contact'][i]['x'],tdata['contact'][i]['y'],Math.round(-40*(tdata['contact'][i]['prediction']-4)),0,0,255)
@@ -73,22 +73,15 @@ function convertJSONtoImageURL(data,drawcrosshairs) {
             }
             
                 
-            /*drawcrosshair(imdata,data['track'][i]['x'],data['track'][i]['y'],Math.round(data['track'][i]['searchmax']/10),blocksize,width,height,0,0,255);
-            drawcrosshair(imdata,data['track'][i]['x'],data['track'][i]['y'],Math.round(-data['track'][i]['prediction']*10),blocksize,width,height,255,255,0);
-            console.log(data['track'][i]['prediction'])
-            drawcircle(imdata,data['track'][i]['x'],data['track'][i]['y'],5,blocksize,width,height,0,0,255);
-            if (data['track'][i]['prediction']<$('input#detectthreshold').val()) {
-                drawcircle(imdata,data['track'][i]['x'],data['track'][i]['y'],15,blocksize,width,height,255,255,0);
-            }
-        }*/
+            
             
         }
     }
     // put the modified pixels back on the canvas
     ctx.putImageData(imgData,0,0);
-    //console.log(canvas.width)
-    if (image in tracking_data) {
-        tdata = tracking_data[image]
+
+    if (image in tracking_data[cam]) {
+        tdata = tracking_data[cam][image]
         if (tdata['contact'].length==0) {
             ctx.font = "20px Courier";
                 ctx.fillStyle = "yellow";
@@ -113,7 +106,11 @@ $('input#imagenum').bind('input',function() {image = parseInt($('input#imagenum'
 //$('input#datetime').bind('input',function() {
 $('button#goto').click(function(){
 url = "http://127.0.0.1:"+$('input#port').val()+"/getindexoftime/"+cam+'/'+$('input#datetime').val();
-$.getJSON(url, function(data) {console.log("ID:"+data); image=data; $('input#imagenum').val(data); refreshimages();}); 
+$.getJSON(url, function(data) {image=data; $('input#imagenum').val(data); refreshimages();}); 
+});
+$('button#newconfig').click(function(){
+url = "http://127.0.0.1:"+$('input#port').val()+"/newconfig/"+$('input#datetime').val();
+$.getJSON(url, function(data) {refreshimages();});
 });
 
 $('button#detectrange').click(function(){
@@ -167,6 +164,12 @@ refreshimages();})
 
 
 $(document).keypress(function(e) {
+  if(e.which == 120) {
+
+    url = "http://127.0.0.1:"+$('input#port').val()+"/deletelm/"+cam+'/'+internalcam+'/'+image+'/'+Math.round(x)+"/"+Math.round(y);
+    $.getJSON(url, function(data) {});
+    setTimeout(refreshimages, 200);
+  }
   if(e.which == 110) {$('button#next').trigger('click');}
   if(e.which == 78) {$('button#next10').trigger('click');}  
   if(e.which == 108) {$('button#last').trigger('click');}    
@@ -184,6 +187,13 @@ $(document).keypress(function(e) {
   }  
   if(e.which == 97) {$(('input:radio#'+(cam+1))).trigger('click');}
   if(e.which == 122) {$(('input:radio#'+(cam-1))).trigger('click');}
+  if(e.which == 112) {
+        url = "http://127.0.0.1:"+$('input#port').val()+"/findpost/"+cam+'/'+internalcam+'/'+image+'/'+Math.round(x)+"/"+Math.round(y);
+    //Landmark post
+
+    $.getJSON(url, function(data) {});
+    setTimeout(refreshimages, 4000);
+  }
   if(e.which == 100) {
         url = "http://127.0.0.1:"+$('input#port').val()+"/deleteallpos/"+cam+'/'+internalcam+'/'+image;
         $.getJSON(url, function(data) {}); 
@@ -329,10 +339,10 @@ $('#image2').mousedown(function(e){
         if (shifted) {confidence=50;} else {confidence=100;}   
         label = "none";     
         if (controlpressed) {label = prompt("Enter label", "none");}
-        console.log("SAVING:"+chosenloc[0]+"/"+chosenloc[1]);
+
         url = "http://127.0.0.1:"+$('input#port').val()+"/savepos/"+cam+'/'+internalcam+'/'+image+"/"+Math.round(chosenloc[0])+"/"+Math.round(chosenloc[1])+"/"+confidence+"/"+label;
         $.getJSON(url, function(data) {}); 
-        //console.log("!"+chosenloc[0]+" "+chosenloc[1]);
+
         //refreshimages();
         setTimeout(refreshimages, 100)
     }
@@ -350,8 +360,7 @@ $('#image2').click(function(e){
     if (shifted) {
         landmarkname = prompt("Enter landmark name (e.g. m03_top, nestfrontleft)", "");
         coords = prompt("Enter coords (e.g. 0,2,3.4 or nest, leave as 'skip' to retain current coords)", "skip");
-        // /savelm/<string:camst>/<int:x>/<int:y>/<string:lmname>')
-        url = "http://127.0.0.1:"+$('input#port').val()+"/savelm/"+cam+'/'+internalcam+'/'+Math.round(centrex)+"/"+Math.round(centrey)+"/"+landmarkname+"/"+coords;
+        url = "http://127.0.0.1:"+$('input#port').val()+"/savelm/"+cam+'/'+internalcam+'/'+image+'/'+Math.round(centrex)+"/"+Math.round(centrey)+"/"+landmarkname+"/"+coords;
         $.getJSON(url, function(data) {}); 
         return;
     }
@@ -364,7 +373,7 @@ $('#image2').click(function(e){
         x2 = centrex+boxsize;
         y1 = centrey-boxsize/1.3333333;
         y2 = centrey+boxsize/1.3333333;
-        //console.log([x1,x2,y1,y2,boxsize])
+
         if (x1<0) {boxsize = boxsize + x1 - 1; continue;}
         if (y1<0) {boxsize = boxsize + y1*1.3333333 - 1; continue;}
         if (x2>2047) {boxsize=boxsize + (2047-x2) - 1; continue;}
@@ -379,14 +388,13 @@ positions = null
 function drawDots() {
   context.clearRect(0, 0, canvasWidth, canvasHeight)
   context.beginPath();
-  
+  if (currentimage==null) {return;}
   scale = currentimage['photo'].length/768;
-  //console.log(currentimage['photo'][Math.round(dot.y*scale)][Math.round(dot.x*scale)]);//[dot.x,dot.y]);  
+
   brightestv = 0;
   brightloc = null;
-  box = 10;
-  //console.log(dot.x+" "+dot.y);
-  //console.log(currentimage['photo'].length);
+  box = 2;
+
   if (dot.y*scale+box+2>currentimage['photo'].length) {dot.y = (currentimage['photo'].length-box-2)/scale;}
   if (dot.y*scale-box-2<0) {dot.y = (box+2)/scale;}
   for( var i = Math.round(dot.x*scale-box); i < dot.x*scale+box; i+=1 ){
@@ -397,30 +405,25 @@ function drawDots() {
       }
     }
   }
+  if (brightloc!=null) {
+    chosenloc = [x1+(x2-x1)*brightloc[0]/1024/scale, y1+(y2-y1)*brightloc[1]/768/scale];
 
-  chosenloc = [x1+(x2-x1)*brightloc[0]/1024/scale, y1+(y2-y1)*brightloc[1]/768/scale];
-
+    context.beginPath();
+    context.arc(1+brightloc[0]/scale,1+brightloc[1]/scale, 5, 0, 2 * Math.PI, false);
+    context.strokeStyle = '#ffff00';
+    context.stroke();
+  }
   
-  context.beginPath();
-  context.arc(1+brightloc[0]/scale,1+brightloc[1]/scale, 5, 0, 2 * Math.PI, false);
-  context.strokeStyle = '#ffff00';
-  context.stroke();
-  
-  
-  console.log(chosenloc);
-  console.log("---");
   for (var i = 0; i<positions.length; i+=1) {
-    console.log('--->');
+ 
     position = positions[i]
     context.beginPath();
     pos = []
-    console.log(position);
-    console.log(x1+' '+x2+' '+y1+' '+y2);
+
     pos['x'] = 1024*(position['x']-x1)/(x2-x1);
     pos['y'] = 768*(position['y']-y1)/(y2-y1);
     
-    console.log(position['confidence']);
-    console.log("SCALE: "+scale);
+
     if (position['confidence']>75) {
       context.arc(2+pos['x'],1+pos['y'], 28, 0, 2 * Math.PI, false);
       context.strokeStyle = '#00ff00';
@@ -429,8 +432,52 @@ function drawDots() {
     context.arc(2+pos['x'],1+pos['y'], 25, 0, 2 * Math.PI, false);
     context.strokeStyle = '#00ff00';
     context.stroke(); 
+    context.arc(2+pos['x']+30,1+pos['y']+i*6, 5, 0, 2 * Math.PI, false);
+    context.strokeStyle = '#00ff00';
+    context.stroke();     
     
   }
+  for (var key in lmpositions['items']){
+    if ('imgcoords' in lmpositions['items'][key])
+    {
+        lmpos = lmpositions['items'][key]['imgcoords']['cam'+(cam+1)]
+        if (lmpos !== undefined) {
+            context.beginPath();
+            pos = []
+            pos['x'] = 1024*(lmpos[0]-x1)/(x2-x1);
+            pos['y'] = 768*(lmpos[1]-y1)/(y2-y1);
+                    
+            context.arc(2+pos['x'],1+pos['y'], 25, 0, 2 * Math.PI, false);
+            context.strokeStyle = '#888800';
+            context.stroke();
+            context.font = "20px Arial";
+            context.fillStyle = '#888800';        
+            context.fillText(key, pos['x'],pos['y']); 
+        }
+     }
+
+  }
+  for (var key in regcoords){
+    regpos = regcoords[key]
+  
+    if (pos !== undefined) {
+        context.beginPath();
+        pos = []
+        console.log(regpos);
+        console.log(regpos[0]-x1);
+        console.log((regpos[0]-x1)/(x2-x1));     
+        pos['x'] = 1024*(regpos[0]-x1)/(x2-x1);
+        pos['y'] = 768*(regpos[1]-y1)/(y2-y1);
+        console.log(pos)
+        context.arc(2+pos['x'],1+pos['y'], 5, 0, 2 * Math.PI, false);
+        context.strokeStyle = '#FFFF00';
+        context.stroke();
+        context.font = "20px Arial";
+        context.fillStyle = '#FFFF00';        
+        context.fillText(key, pos['x'],pos['y']); 
+    }
+
+  }  
 }
 
 $('input#maxval').bind('input',function() {refreshimages();});
@@ -438,23 +485,31 @@ function refreshimages(){
     cam_images[cam]=image;
     $('input#imagenum').val(image);
     url = "http://127.0.0.1:"+$('input#port').val()+"/filename/"+cam+'/'+internalcam+'/'+image;
-    $.getJSON(url, function(data) {$('span#filename').text(data); });  
+    $.getJSON(url, function(data) {$('span#filename').text(data); });
+    url = "http://127.0.0.1:"+$('input#port').val()+"/gettime/"+cam+'/'+internalcam+'/'+image;
+    $.getJSON(url, function(data) { $('span#clock').text(data['mins']+':'+(data['secs']+data['ms']/1000).toFixed(3)); });      
 
     url = "http://127.0.0.1:"+$('input#port').val()+"/getimage/"+cam+"/"+internalcam+'/'+image+"/"+Math.round(x1)+"/"+Math.round(y1)+"/"+Math.round(x2)+"/"+Math.round(y2);
     $.getJSON(url, function(data) {$('#image').css("background-image",convertJSONtoImageURL(data,true)); currentimage=data; });  
-    
+    //url = "http://127.0.0.1:"+$('input#port').val()+"/loadlm/"+cam+'/'+internalcam;
+    //$.getJSON(url, function(data) {lm_positions = data;});    
    // await sleep(200);
     url = "http://127.0.0.1:"+$('input#port').val()+"/loadpos/"+cam+'/'+internalcam+'/'+image;
-    $.getJSON(url, function(data) {positions = data; console.log(url); console.log(positions); drawDots();});  
-    //
+    $.getJSON(url, function(data) {positions = data['bees']; lmpositions=data['landmarks']; regcoords=data['regcoords']; drawDots();});
+    
+
+    url = "http://127.0.0.1:"+$('input#port').val()+"/getlistofconfigfiles/"+cam+"/"+internalcam+'/'+image;
+    $.getJSON(url, function(data) {$('span#configfiles').html(data); });
+
+    
 }
 
 
-tracking_data = {}
+tracking_data = [{},{},{},{},{},{},{},{}];
 function refreshtracking(){
     if (document.getElementById('track').checked) {
         url = "http://127.0.0.1:"+$('input#port').val()+"/detect/"+cam+'/'+image;
-        $.getJSON(url, (function(imagen) {return function(data) {tracking_data[imagen] = data; refreshimages();}}(image)));
+        $.getJSON(url, (function(imagen) {return function(data) {tracking_data[cam][imagen] = data; refreshimages();}}(image)));
     }
 }
 refreshtracking();

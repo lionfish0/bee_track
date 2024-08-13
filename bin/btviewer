@@ -15,6 +15,8 @@ import os
 import re
 import retrodetect
 import pickle
+from functools import lru_cache
+maxsize = None
 
 parser = argparse.ArgumentParser(description='Provide simple interface to label bee images')
 parser.add_argument('imgpath',type=str,help='Path to images')
@@ -31,6 +33,7 @@ print(os.path.abspath(pathtoimgsdir))
 pathtoimgsdir = os.path.abspath(pathtoimgsdir)
 pathtoimgs = sorted(glob(pathtoimgsdir+'/*/'))
 
+    
 
 if (len(pathtoimgs)==0):
     print("Failed to find any folders in the path, using base path given as camera folder.")
@@ -41,6 +44,12 @@ print(pathtoimgs)
 scriptpath = os.path.dirname(os.path.realpath(__file__))
 os.chdir(scriptpath)
 print(scriptpath)
+
+try:
+    os.mkdir('cache')
+except FileExistsError:
+    pass
+    
 #indexhtml = os.path.join(scriptpath, 'index.html')
 #webbrowser.open("file://index.html",new=2)
 webbrowser.open("file://" + os.path.realpath('index.html'),new=2)
@@ -58,7 +67,7 @@ else:
 print(configfilename)
 
 
-
+@lru_cache(maxsize=maxsize)
 def getimgfilelist(path,camid=None):
     if camid is not None:
         return sorted(glob('%s/*%s*.np'%(path,camid)))
@@ -71,7 +80,8 @@ def getcamfromfilename(fn):
         return None
     else:
         return res[0]
-    
+
+@lru_cache(maxsize=maxsize)
 def getfnfordatetimeandcamid(path,camid,datetime):
     fns = glob('%s/*%s_%s*.np'%(path,camid,datetime))
     if len(fns)==0:
@@ -79,7 +89,20 @@ def getfnfordatetimeandcamid(path,camid,datetime):
     else:
         return fns[0]
 
-
+@lru_cache(maxsize=maxsize)
+def gettimeinsecondsfromfilename(fn):
+    #res = re.findall('photo_object_[0-9A-Z]*_[0-9]{8}_([0-9]{2}):([0-9]{2}):([0-9]{2}).[0-9]{6}_',fn)[0]
+    res = re.findall('.*([0-9]{2}):([0-9]{2}):([0-9]{2}).*',fn)[0]
+    print(res)
+    print("H: %s" % int(res[0]))
+    print("M: %s" % int(res[1]))
+    print("S: %s" % int(res[2]))
+    if len(res)==0:
+        return None
+    else:
+        return int(res[0])*3600+int(res[1])*60+int(res[2])
+        
+@lru_cache(maxsize=maxsize)
 def getdatetimefromfilename(fn):
     res = re.findall('photo_object_[0-9A-Z]*_([0-9]{8}_[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{6})_',fn)
     if len(res)==0:
@@ -87,6 +110,7 @@ def getdatetimefromfilename(fn):
     else:
         return res[0]
 
+@lru_cache(maxsize=maxsize)
 def getdatetimelist(path):
     """
     Returns a list of all unique datetimes in path
@@ -94,29 +118,63 @@ def getdatetimelist(path):
     fns = getimgfilelist(path)
     return sorted(list(set([getdatetimefromfilename(fn) for fn in fns if getdatetimefromfilename(fn) is not None])))
 
+@lru_cache(maxsize=maxsize)
 def guesscamtypegetscore(fn):
-    photo = pickle.load(open(fn,'rb'))
+    try:
+        photo = pickle.load(open(fn,'rb'))
+    except EOFError:
+        return np.NaN
     img = photo['img']
     if img is None: return np.NaN
     #e.g. 0.0001 = greyscale, 0.7 = colour
     score = np.abs(np.mean(img[0:-2:2,0:-2:2]/2+img[2::2,2::2]/2-img[1:-2:2,1:-2:2])/np.mean(img))
     return score
     
+@lru_cache(maxsize=maxsize)
 def guesscamtype(path,camid):
     score = np.nanmean([guesscamtypegetscore(fn) for fn in getimgfilelist(path,camid)[:50:5]])
-    if score<0.02:
-        return 'greyscale'
-    else:
-        return 'colour'
+    return score
+    #if score<0.02:
+    #    return 'greyscale'
+    #else:
+    #    return 'colour'
 
+@lru_cache(maxsize=maxsize)
 def getorderedcamids(path):
     """
     Returns camera ids with greyscale ones first
     """
+    print("Searching for images to get camera ids in %s." % path)
     fns = getimgfilelist(path)
     cam_ids = list(set([getcamfromfilename(fn) for fn in fns if getcamfromfilename(fn) is not None]))
-    return [cam_id for cam_id in cam_ids if guesscamtype(path,cam_id)=='greyscale']+[cam_id for cam_id in cam_ids if guesscamtype(path,cam_id)=='colour']
+    print("Found camera ids:")
+    print(cam_ids)
+    if len(cam_ids)==0: return cam_ids
+    if len(cam_ids)>1:
+        if (guesscamtype(path,cam_ids[0])>guesscamtype(path,cam_ids[1])):
+            cam_ids = cam_ids[::-1]
 
+    cachefile = 'cache/cam_types.pkl'
+    try:
+        cam_types = pickle.load(open(cachefile,'rb'))
+    except FileNotFoundError:
+        cam_types = {}
+    
+    if len(cam_ids)==2:    
+        cam_types[cam_ids[0]] = {'type':'grey','other':cam_ids[1]}
+        cam_types[cam_ids[1]] = {'type':'colour','other':cam_ids[0]}
+    else:
+        print(cam_ids)
+        camtype = 'grey' if guesscamtype(path,cam_ids[0])<0.02 else 'colour'
+        cam_types[cam_ids[0]] = {'type':camtype,'other':None}
+    print("Recorded cam types:")
+    print(cam_types)
+    
+    pickle.dump(cam_types,open(cachefile,'wb'))
+    #return [cam_id for cam_id in cam_ids if guesscamtype(path,cam_id)=='greyscale']+[cam_id for cam_id in cam_ids if guesscamtype(path,cam_id)=='colour']
+    return cam_ids
+
+@lru_cache(maxsize=maxsize)
 def getimgfilename(cam,internalcam,number):
     path = pathtoimgs[cam]
     dts = getdatetimelist(path)    
@@ -155,8 +213,22 @@ def getindexoftime(cam,dtstring):
     gotoNum = np.argmin(np.abs([(converttodt(re.findall('.*_([0-9]{2}:[0-9]{2}:[0-9]{2})',fn)[0])-targ).total_seconds() for fn in fns]))
     return json.dumps(int(gotoNum))
 
+import re
+@app.route('/newconfig/<string:dtstring>')
+def newconfig(dtstring):
+    #dtstring = re.sub('[^0-9]+', '', dtstring)
+    configfilename = pathtoimgsdir+'/config_%s.json' % dtstring
+    if not os.path.exists(configfilename):
+        json.dump({'items':{}},open(configfilename,'w'),indent=4) #start a new empty file
+        print("New config file: %s" % configfilename)
+    else:
+        print("Found old config file")
+    return "New config file: %s" % configfilename
+    
+
 @app.route('/detectfromto/<int:cam>/<int:from_idx>/<int:to_idx>')
 def detectall(cam,from_idx,to_idx):
+    print(cam,from_idx,to_idx)
     print("STARTING DETECTION RUN: %d to %d" % (from_idx, to_idx));
     for i in range(from_idx,to_idx):
         detect(cam,i)
@@ -169,7 +241,6 @@ import hashlib
 def detect(cam,number):
     path = pathtoimgs[cam]
     cachefile = 'cache/detect_cache_%s_%d.pkl' % (gethash(path.encode("utf-8")),number)
-    
     if not args.refreshcache:
         try:
             result = pickle.load(open(cachefile,'rb'))
@@ -181,7 +252,8 @@ def detect(cam,number):
     photo_list = []
     for n in range(number-10,number+2):
         if n<0: continue
-        fn = getimgfilename(cam,0,n) 
+        fn = getimgfilename(cam,0,n)
+        print("Accessing getimgfilename(cam=%d,internalcam=0,number=%d) -> %s" % (cam,n,fn))
         try:
             photoitem = np.load(fn,allow_pickle=True) 
         except OSError:
@@ -229,17 +301,96 @@ def configure(path):
 
 import json
 
-@app.route('/savelm/<int:cam>/<int:internalcam>/<int:x>/<int:y>/<string:lmname>/<string:coords>')
-def savelm(cam,internalcam,x,y,lmname,coords):
+@app.route('/getlistofconfigfiles/<int:cam>/<int:internalcam>/<int:number>')
+def getlistofconfigfiles(cam,internalcam,number):
+    configfilename = getconfigfilename(cam,internalcam,number)
+    configfiles = sorted(glob('%s/config_[0-9:]*.json'% pathtoimgsdir))
+    print("!!!")
+    print(configfiles)
+    np.array(configfiles)==configfilename
+    msg = "<br/>\n".join([cf.split('/')[-1] for cf in configfiles])
+    msg = msg + "<br/><br/>Using config file: %s" % (configfilename.split('/')[-1])
+    return json.dumps(msg)
+
+def getconfigfilename(cam,internalcam,number):
+    """
+    Gets the config file with a time that is closest to the current image (but in the past).
+    This is all a bit hacky as I retrofitted in the fact that the config can change over time.
+    Originally there was just one config file.
+    """
+    fn = getimgfilename(cam,internalcam,number)
+
+    current_time = gettimeinsecondsfromfilename(fn)
+
+    configfiles = sorted(glob('%s/config_[0-9:]*.json'% pathtoimgsdir))
+    print("!!!!")
+    print(configfiles)
+
+    config_times = [gettimeinsecondsfromfilename(cf) for cf in configfiles]
+    config_times = np.array(config_times)
+
+ 
+
+    try:
+        configfilename = np.array(configfiles)[config_times<=current_time][-1]
+        print("\n\nUsing %s." % configfilename)        
+    except IndexError: #e.g. there are no configfiles that fit.
+        newconfig('00:00:00') #make a new empty config file that should work...
+        print("Failed... making default config file at 00:00:00")    
+
+    print(fn)
     
-    print(coords,len(coords))  
+    return configfilename
+    #get the time from fn, and find the right config file...
+    #return config filename
+    
+    
+@app.route('/deletelm/<int:cam>/<int:internalcam>/<int:number>/<int:x>/<int:y>')
+def deletelm(cam,internalcam,number,x,y):
+    print("DELETING...")
+    print(cam,internalcam,number,x,y)
+    try:
+        data = json.load(open(getconfigfilename(cam,internalcam,number),'r'))
+    except FileNotFoundError:
+        data = {}  
+    except json.decoder.JSONDecodeError:
+        print("WARNING: Failed to decode json file")
+        data = {}
+    camst = 'cam%d' % (cam+1) #TODO The camera id stuff is a complete mess. 
+    internalcamst = 'internalcam%d' % internalcam #not using which internal camera for now...
+    if 'items' not in data:
+        data['items'] = {}
+    print("...")
+    for item, contents in data['items'].items():
+        print(item)
+        print(item,contents)
+        try:
+            pos = np.array(contents['imgcoords'][camst])
+        except KeyError:
+            continue #not in this camera
+        clickpos = np.array([x,y])
+        if np.sum((clickpos-pos)**2)<50**2:
+            print("FOUND...")
+            print(data['items'][item]['imgcoords'][camst])
+            del data['items'][item]['imgcoords'][camst]
+            
+    
+    json.dump(data,open(getconfigfilename(cam,internalcam,number),'w'),indent=4)
+    return "done"
+      
+
+@app.route('/savelm/<int:cam>/<int:internalcam>/<int:number>/<int:x>/<int:y>/<string:lmname>/<string:coords>')
+def savelm(cam,internalcam,number,x,y,lmname,coords):    
     if len(coords.split(","))==3:
         coords = [float(s) for s in coords.split(",")]
 
     try:
-        data = json.load(open(configfilename,'r'))
+        data = json.load(open(getconfigfilename(cam,internalcam,number),'r'))
     except FileNotFoundError:
         data = {}  
+    except json.decoder.JSONDecodeError:
+        print("WARNING: Failed to decode json file")
+        data = {}
     camst = 'cam%d' % (cam+1) #TODO The camera id stuff is a complete mess. 
     internalcamst = 'internalcam%d' % internalcam #not using which internal camera for now...
     if 'items' not in data:
@@ -252,9 +403,89 @@ def savelm(cam,internalcam,x,y,lmname,coords):
         data['items'][lmname]['coords'] = coords
     data['items'][lmname]['imgcoords'][camst] = [x,y]
     
-    json.dump(data,open(configfilename,'w'),indent=4)
+    json.dump(data,open(getconfigfilename(cam,internalcam,number),'w'),indent=4)
     return "done"
     
+
+    
+    
+from findposts import find_post_code
+
+    
+    
+@app.route('/findallposts/<int:cam>/<int:internalcam>/<int:number>')
+def findallposts(cam,internalcam,number):
+    fn = getimgfilename(cam,internalcam,number)
+    print("FN: "+fn)
+    n,img,data = load_img(fn)
+    
+    for it in range(10):
+        print("SEARCHING...")
+        maxloc = np.unravel_index(img.argmax(), img.shape)
+        try:
+            res = find_post_code(img,maxloc)
+        except:
+            res = None
+        if res is not None:  
+            print("FOUND:")
+            print(res)  
+            savelm(cam,internalcam,number,int(res['ylocs'][0]),int(res['xlocs'][0]),'post'+str(res['code'])+'top','skip')
+            savelm(cam,internalcam,number,int(res['ylocs'][-1]),int(res['xlocs'][-1]),'post'+str(res['code'])+'bottom','skip')
+        img[maxloc[0]-40:maxloc[0]+40,maxloc[1]-40:maxloc[1]+40]=0
+
+    return "done"        
+
+@app.route('/findpost/<int:cam>/<int:internalcam>/<int:number>/<int:x>/<int:y>')
+def findpost(cam,internalcam,number,x,y):
+    fn = getimgfilename(cam,internalcam,number)
+    n,img,data = load_img(fn)
+    print(fn)
+    res = find_post_code(img.astype(float),(y,x),angres=360,sizeres=1)
+    print(res)
+    if res is not None:
+        savelm(cam,internalcam,number,int(res['ylocs'][0]),int(res['xlocs'][0]),'post'+str(res['code'])+'top','skip')
+        savelm(cam,internalcam,number,int(res['ylocs'][-1]),int(res['xlocs'][-1]),'post'+str(res['code'])+'bottom','skip')
+    return "done"    
+    
+@app.route('/gettime/<int:cam>/<int:internalcam>/<int:number>')    
+def gettime(cam,internalcam,number):
+    fn = getimgfilename(cam,internalcam,number)
+    n,img,data = load_img(fn)
+    try:
+        data = json.load(open(getconfigfilename(cam,internalcam,number),'r'))
+    except FileNotFoundError:
+        data = {}  
+    except json.decoder.JSONDecodeError:
+        print("WARNING: Failed to decode json file")
+        data = {}
+    camst = 'cam%d' % (cam+1) #TODO The camera id stuff is a complete mess. 
+    internalcamst = 'internalcam%d' % internalcam #not using which internal camera for now...
+    clocktop = None
+    clockbottom = None
+
+    for lab, contents in data['items'].items():
+        if lab not in ['clocktop','clockbottom']:
+            continue
+        
+        if camst in contents['imgcoords']:
+            if lab=='clocktop': clocktop=contents['imgcoords'][camst]
+            if lab=='clockbottom': clockbottom=contents['imgcoords'][camst]
+            
+    if (clocktop is None) or (clockbottom is None):
+        return {'mins':None,'secs':None,'ms':None}
+    posy = np.linspace(clockbottom[0],clocktop[0],16).astype(int)
+    posx = np.linspace(clockbottom[1],clocktop[1],16).astype(int)
+    raw = []
+
+    for x,y in zip(posx,posy):
+        raw.append(np.max(img[x-3:x+3,y-3:y+3]))
+    print(raw)
+    threshold = (np.max(raw)*0.25+np.min(raw)*0.75)
+    res = np.array(raw)>threshold
+    print(res)
+    ms = np.sum(res[:8]*(2**np.arange(7,-1,-1)))*4
+    secs = np.sum(res[8:]*(2**np.arange(7,-1,-1)))
+    return {'mins':int(secs//60),'secs':int(secs%60),'ms':int(ms),'raw':list([int(r) for r in res])}
     
 def save_pos(cam,internalcam,number,x,y,confidence,label=None):
     fn = getimgfilename(cam,internalcam,number)
@@ -319,9 +550,64 @@ def load_data(cam,internalcam,number):
     
 @app.route('/loadpos/<int:cam>/<int:internalcam>/<int:number>')
 def loadpos(cam,internalcam,number):
-    d = load_data(cam,internalcam,number)
-    return json.dumps(d)
+    print('loadpos('+str(cam)+','+str(internalcam)+','+str(number)+')')
+    beedata = load_data(cam,internalcam,number)
+    try:
+        lmdata = json.load(open(getconfigfilename(cam,internalcam,number),'r'))
+    except FileNotFoundError:
+        lmdata = {}  
+    except json.decoder.JSONDecodeError:
+        print("WARNING: Failed to decode json file")
+        lmdata = {}
+        
+    regcoords = getcoords(cam,internalcam,number)        
+    print(regcoords)
+    return json.dumps({'landmarks':lmdata,'bees':beedata,'regcoords':regcoords})
+
+from landmark_registration import loadobjects
+@app.route('/prepregistration/<int:cam>/<int:internalcam>/<int:number>')
+def prepregistration(cam,internalcam,number):
+    global objects
+    global cameras
+    print("Prep Reg")
+    fn = getconfigfilename(cam,internalcam,number)
+    print("Loading data for landmark registration from file %s." % fn)
+    objects, cameras = loadobjects(fn)    
+    return "Done"
     
+from landmark_registration import loadobjects
+
+def getcoords(cam,internalcam,number):
+    global objects
+    global cameras
+    print("Get Coords")
+    if 'objects' not in globals():
+        fn = getconfigfilename(cam,internalcam,number)
+        print("Loading data for landmark registration from file %s." % fn)
+        objects, cameras = loadobjects(fn)
+
+    coords = {}
+    for target in objects:
+        res, _ = cameras['cam%d' % (cam+1)].getpixel(objects[target])
+        coords[target] = list(res)
+    return coords
+
+@app.route('/registrationadjust/<int:cam>/<int:internalcam>/<int:number>/<string:action>/<float(signed=True):val>')
+def registrationadjust(cam,internalcam,number,action,val):
+    global cameras
+    print("REG ADJUST")
+    if 'translate' in action:
+        if action[-1]=='x': axis=0
+        if action[-1]=='y': axis=1
+        if action[-1]=='z': axis=2
+        cameras['cam%d' % (cam+1)].position[axis] +=val 
+
+    if 'yaw' in action: 
+        cameras['cam%d' % (cam+1)].orientation[0] +=val         
+    print(cameras['cam%d' % (cam+1)].position)
+    return "Done"
+    
+
 @app.route('/stick/<int:cam>/<int:internalcam>/<int:number>/<int:numtags>')
 def stick(cam,internalcam,number,numtags):
     """
@@ -384,8 +670,13 @@ def getcachedshift(cam,internalcam,number):
     n,img,data = load_img(fn)
     fn = getimgfilename(cam,0,number) #get 0th internal cam -> should be greyscale...
     grey_n,grey_img,grey_data = load_img(fn)  
-    shift = getshift(grey_img,img,step=1)
-    shift[0]-=2 #trying to correct for difference in camera locations!
+    grey_img = grey_img.astype(float)
+    img = img.astype(float)    
+    grey_img/=np.mean(grey_img)
+    img/=np.mean(img)    
+    shift = getshift(grey_img[300:-300,300:-300],img[300:-300,300:-300],step=1,searchbox=200)
+    #shift = getshift(grey_img,img,step=1)
+    #shift[0]-=2 #trying to correct for difference in camera locations!
     cache[cam][number//20] = shift
     pickle.dump(cache,open(cachefile,'wb'))
     return shift
@@ -404,7 +695,8 @@ def getimage(cam,internalcam,number,x1,y1,x2,y2):
     if internalcam>0:
         shift = getcachedshift(cam,internalcam,number)
         img = shiftimg(img,shift,0)
-            
+    #img = 10*img.astype(float)/np.mean(img.astype(float))
+    img = img.astype(float)#/np.mean(img.astype(float))
     #fns = sorted(glob('%s/*.np'%(pathtoimgs)))
     #if len(fns)==0:
     #    return "Image not found"
